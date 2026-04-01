@@ -1,0 +1,58 @@
+# 🎯 Core Features — Interactive Stories App (MVP)
+
+# Feature
+
+---
+
+## 5️⃣ Magic Link Login
+
+Users log in using their email.
+No password required.
+
+Purpose:
+Low-friction authentication and ownership tracking.
+
+---
+
+## 6️⃣ Story Library (My Stories)
+
+Users can view and access all stories they own.
+
+Includes:
+
+* Owned stories list
+* Read / Replay access
+
+Purpose:
+Reinforce value and encourage repeat usage.
+
+---
+
+## 7️⃣ Story Discovery (Explore)
+
+Users can browse available stories, view summaries, and see pricing.
+
+Purpose:
+Support discovery and conversion.
+
+
+
+
+# USER FLOW (High-Level)
+
+
+Homepage
+   ↓
+Login (if needed)
+   ↓
+Onboarding OR Explore
+   ↓
+Story Detail
+   ↓
+Reader
+   ↓
+Ending
+   ↓
+Library
+
+
