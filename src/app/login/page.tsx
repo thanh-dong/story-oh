@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,27 +8,30 @@ import { Label } from "@/components/ui/label";
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
+  const [magicLink, setMagicLink] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    setSuccess(false);
+    setMagicLink(null);
 
-    const supabase = createClient();
-    const { error: authError } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
-      },
+    const res = await fetch("/api/dev-login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email,
+        redirectTo: `${window.location.origin}/auth/callback`,
+      }),
     });
 
-    if (authError) {
-      setError(authError.message);
+    const data = await res.json();
+
+    if (!res.ok) {
+      setError(data.error ?? "Something went wrong");
     } else {
-      setSuccess(true);
+      setMagicLink(data.link);
     }
 
     setLoading(false);
@@ -47,19 +49,28 @@ export default function LoginPage() {
         </h1>
 
         <p className="text-center text-muted-foreground">
-          Sign in with a magic link sent to your email
+          Enter your email to get a sign-in link
         </p>
 
-        {success ? (
+        {magicLink ? (
           <div className="w-full rounded-xl border bg-card p-6 text-center">
             <p className="text-4xl" aria-hidden="true">
-              📬
+              🔗
             </p>
             <p className="mt-3 text-lg font-bold">
-              Check your email for the magic link!
+              Dev Magic Link
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
-              We sent a sign-in link to <strong>{email}</strong>
+              Click the link below to sign in as <strong>{email}</strong>
+            </p>
+            <a
+              href={magicLink}
+              className="mt-4 inline-block rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground hover:bg-primary/80"
+            >
+              Sign In Now
+            </a>
+            <p className="mt-3 break-all rounded-lg bg-muted p-3 text-xs text-muted-foreground">
+              {magicLink}
             </p>
           </div>
         ) : (
@@ -87,7 +98,7 @@ export default function LoginPage() {
             )}
 
             <Button type="submit" disabled={loading} className="w-full">
-              {loading ? "Sending..." : "Send Magic Link"}
+              {loading ? "Generating..." : "Get Magic Link"}
             </Button>
           </form>
         )}
