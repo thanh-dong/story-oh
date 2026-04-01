@@ -41,7 +41,8 @@ export function storyTreeToFlow(tree: StoryTree): { nodes: Node<StoryNodeData>[]
     });
   });
 
-  return autoLayout(nodes, edges);
+  const layout = autoLayout(nodes, edges);
+  return { nodes: layout.nodes as Node<StoryNodeData>[], edges: layout.edges };
 }
 
 export function flowToStoryTree(nodes: Node<StoryNodeData>[], edges: Edge[]): StoryTree {
