@@ -87,7 +87,7 @@ export function StoryForm({ initialData, onSave, saving }: StoryFormProps) {
 
       <div className="space-y-2">
         <Label htmlFor="age-range">Age Range</Label>
-        <Select value={ageRange} onValueChange={(value) => setAgeRange(value ?? "4-8")}>
+        <Select value={ageRange} onValueChange={(value: string | null) => setAgeRange(value ?? "4-8")}>
           <SelectTrigger id="age-range">
             <SelectValue />
           </SelectTrigger>
