@@ -18,12 +18,11 @@ export default function Home() {
           Interactive stories for kids aged 4-12
         </p>
 
-        <Button
-          className="mt-4 rounded-full px-8 py-6 text-lg font-bold"
-          render={<Link href="/explore" />}
-        >
-          Explore Stories
-        </Button>
+        <Link href="/explore">
+          <Button className="mt-4 rounded-full px-8 py-6 text-lg font-bold">
+            Explore Stories
+          </Button>
+        </Link>
       </section>
 
       {/* Feature Highlights */}
