@@ -44,37 +44,31 @@ export function StoryNodeComponent({
         {/* Story text preview */}
         <p className="text-sm text-foreground">{truncatedText}</p>
 
-        {/* Choice handles */}
+        {/* Choice buttons with handles */}
         {data.choices.length > 0 && (
           <div className="mt-3 flex flex-col gap-1">
             {data.choices.map((choice, index) => (
               <div
                 key={index}
-                className="relative text-[10px] text-muted-foreground truncate text-center"
+                className="relative flex items-center rounded-md bg-muted/50 px-2 py-1"
               >
-                {choice.label}
+                <span className="text-[11px] font-medium text-muted-foreground truncate flex-1">
+                  {choice.label || `Choice ${index + 1}`}
+                </span>
+                <Handle
+                  type="source"
+                  position={Position.Right}
+                  id={`choice-${index}`}
+                  className="!relative !top-0 !right-0 !left-auto !translate-y-0 !translate-x-0"
+                  style={{ position: "relative" }}
+                />
               </div>
             ))}
           </div>
         )}
       </div>
 
-      {/* Source handles for each choice */}
-      {data.choices.map((_, index) => {
-        const total = data.choices.length;
-        const offset = total > 1 ? (index / (total - 1)) * 80 + 10 : 50;
-        return (
-          <Handle
-            key={`choice-${index}`}
-            type="source"
-            position={Position.Bottom}
-            id={`choice-${index}`}
-            style={{ left: `${offset}%` }}
-          />
-        );
-      })}
-
-      {/* If no choices (ending node), still provide a default source handle for connecting */}
+      {/* Fallback handle for ending nodes */}
       {data.choices.length === 0 && (
         <Handle
           type="source"

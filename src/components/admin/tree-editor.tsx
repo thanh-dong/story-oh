@@ -78,11 +78,19 @@ function TreeEditorInner({ value, onChange }: TreeEditorProps) {
 
   const onConnect = useCallback(
     (connection: Connection) => {
+      // Look up the actual choice label from the source node's data
+      const sourceNode = nodes.find((n) => n.id === connection.source);
+      const sourceData = sourceNode?.data as StoryNodeData | undefined;
+      const choiceIndex = parseInt(
+        connection.sourceHandle?.replace("choice-", "") ?? "0"
+      );
+      const choiceLabel = sourceData?.choices[choiceIndex]?.label || "Continue";
+
       setEdges((eds) =>
-        addEdge({ ...connection, label: "Continue", type: "smoothstep" }, eds)
+        addEdge({ ...connection, label: choiceLabel, type: "smoothstep" }, eds)
       );
     },
-    [setEdges]
+    [setEdges, nodes]
   );
 
   const onNodeClick = useCallback(

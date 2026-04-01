@@ -81,8 +81,13 @@ export function NodeEditPanel({
           {node.choices.map((choice, index) => (
             <div key={index} className="rounded-lg border p-2">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-xs text-muted-foreground">
-                  Choice {index + 1}
+                <span className="text-xs font-medium text-muted-foreground">
+                  {choice.label || `Choice ${index + 1}`}
+                  {choice.next && (
+                    <span className="font-mono text-[10px] ml-1 opacity-60">
+                      → {choice.next}
+                    </span>
+                  )}
                 </span>
                 <Button
                   variant="destructive"
@@ -98,13 +103,7 @@ export function NodeEditPanel({
                   handleChoiceLabelChange(index, e.target.value)
                 }
                 placeholder="Choice label"
-                className="mb-1"
               />
-              {choice.next && (
-                <p className="text-xs text-muted-foreground">
-                  Target: <span className="font-mono">{choice.next}</span>
-                </p>
-              )}
             </div>
           ))}
         </div>

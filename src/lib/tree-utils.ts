@@ -58,12 +58,21 @@ export function flowToStoryTree(nodes: Node<StoryNodeData>[], edges: Edge[]): St
         return aIdx - bIdx;
       });
 
+    // Use node data choices as source of truth for labels,
+    // edges provide the connection targets
+    const choices = data.choices.map((choice, index) => {
+      const matchingEdge = nodeEdges.find(
+        (e) => e.sourceHandle === `choice-${index}`
+      );
+      return {
+        label: choice.label || (matchingEdge?.label as string) || "Continue",
+        next: matchingEdge?.target ?? choice.next,
+      };
+    });
+
     tree[data.nodeId] = {
       text: data.text,
-      choices: nodeEdges.map((edge) => ({
-        label: (edge.label as string) ?? "Continue",
-        next: edge.target,
-      })),
+      choices,
     };
   }
 
