@@ -1,9 +1,16 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { getGradient, getStoryEmoji } from "@/lib/gradients";
-import type { Story } from "@/lib/types";
+import { ShareStoryDialog } from "@/components/share-story-dialog";
+import type { Story, Child } from "@/lib/types";
 
-export function StoryCard({ story }: { story: Story }) {
+interface StoryCardProps {
+  story: Story;
+  childrenList?: Child[];
+  assignedChildIds?: string[];
+}
+
+export function StoryCard({ story, childrenList, assignedChildIds }: StoryCardProps) {
   const gradient = getGradient(story.title);
   const nodeCount = Object.keys(story.story_tree).length;
   const endingCount = Object.values(story.story_tree).filter(
@@ -11,8 +18,8 @@ export function StoryCard({ story }: { story: Story }) {
   ).length;
 
   return (
-    <Link href={`/story/${story.id}`} className="group block">
-      <article className="relative h-full overflow-hidden rounded-2xl bg-card storybook-shadow transition-all duration-300 hover:-translate-y-1 hover:storybook-shadow-lg">
+    <article className="group relative h-full overflow-hidden rounded-2xl bg-card storybook-shadow transition-all duration-300 hover:-translate-y-1 hover:storybook-shadow-lg">
+      <Link href={`/story/${story.id}`} className="block">
         {/* Gradient cover */}
         <div
           className={`relative h-40 w-full bg-gradient-to-br ${gradient} flex items-center justify-center sm:h-44`}
@@ -39,7 +46,20 @@ export function StoryCard({ story }: { story: Story }) {
             <span>{endingCount} {endingCount === 1 ? "ending" : "endings"}</span>
           </div>
         </div>
-      </article>
-    </Link>
+      </Link>
+
+      {childrenList && childrenList.length > 0 && (
+        <div
+          className="absolute left-3 top-3 z-10"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <ShareStoryDialog
+            storyId={story.id}
+            childrenList={childrenList}
+            assignedChildIds={assignedChildIds ?? []}
+          />
+        </div>
+      )}
+    </article>
   );
 }

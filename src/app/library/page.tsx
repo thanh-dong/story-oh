@@ -2,13 +2,14 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { stories as storiesTable, userStories } from "@/lib/db/schema";
-import { and, eq, isNull } from "drizzle-orm";
+import { stories as storiesTable, userStories, children as childrenTable, childStories } from "@/lib/db/schema";
+import { and, eq, isNull, inArray } from "drizzle-orm";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { getGradient, getStoryEmoji } from "@/lib/gradients";
 import { Pencil, Plus, Trash2 } from "lucide-react";
-import type { Story } from "@/lib/types";
+import { ShareStoryDialog } from "@/components/share-story-dialog";
+import type { Story, Child } from "@/lib/types";
 import { DeleteStoryButton } from "./delete-story-button";
 
 export default async function LibraryPage() {
@@ -37,6 +38,29 @@ export default async function LibraryPage() {
     ...row.user_stories,
     story: row.stories as Story,
   }));
+
+  // Fetch children and build assignment map for share buttons
+  const userChildren = await db
+    .select()
+    .from(childrenTable)
+    .where(eq(childrenTable.parentId, session.user.id)) as Child[];
+
+  let assignmentMap: Record<string, string[]> = {};
+
+  if (userChildren.length > 0) {
+    const childIds = userChildren.map((c) => c.id);
+    const assignments = await db
+      .select()
+      .from(childStories)
+      .where(inArray(childStories.childId, childIds));
+
+    for (const a of assignments) {
+      if (!assignmentMap[a.storyId]) {
+        assignmentMap[a.storyId] = [];
+      }
+      assignmentMap[a.storyId].push(a.childId);
+    }
+  }
 
   return (
     <div className="space-y-12">
@@ -79,6 +103,16 @@ export default async function LibraryPage() {
                       </Badge>
                     </div>
                   </Link>
+
+                  {userChildren.length > 0 && (
+                    <div className="absolute right-3 top-3 z-10">
+                      <ShareStoryDialog
+                        storyId={story.id}
+                        childrenList={userChildren}
+                        assignedChildIds={assignmentMap[story.id] ?? []}
+                      />
+                    </div>
+                  )}
 
                   <div className="p-4">
                     <h3 className="font-bold leading-snug tracking-tight">{story.title}</h3>
@@ -136,12 +170,14 @@ export default async function LibraryPage() {
               const isAtEnding = currentNode && currentNode.choices.length === 0;
 
               return (
-                <Link
+                <article
                   key={us.story_id}
-                  href={`/story/${story.id}/read`}
-                  className="group block"
+                  className="group relative h-full overflow-hidden rounded-2xl bg-card storybook-shadow transition-all duration-300 hover:-translate-y-1 hover:storybook-shadow-lg"
                 >
-                  <article className="relative h-full overflow-hidden rounded-2xl bg-card storybook-shadow transition-all duration-300 hover:-translate-y-1 hover:storybook-shadow-lg">
+                  <Link
+                    href={`/story/${story.id}/read`}
+                    className="block"
+                  >
                     <div className={`relative flex h-36 items-center justify-center bg-gradient-to-br ${gradient} sm:h-40`}>
                       <span className="text-5xl drop-shadow-md transition-transform duration-300 group-hover:scale-110" aria-hidden="true">
                         {emoji}
@@ -164,8 +200,18 @@ export default async function LibraryPage() {
                         </span>
                       </div>
                     </div>
-                  </article>
-                </Link>
+                  </Link>
+
+                  {userChildren.length > 0 && (
+                    <div className="absolute left-3 top-3 z-10">
+                      <ShareStoryDialog
+                        storyId={story.id}
+                        childrenList={userChildren}
+                        assignedChildIds={assignmentMap[story.id] ?? []}
+                      />
+                    </div>
+                  )}
+                </article>
               );
             })}
           </div>

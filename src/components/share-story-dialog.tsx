@@ -17,13 +17,13 @@ import type { Child } from "@/lib/types";
 
 interface ShareStoryDialogProps {
   storyId: string;
-  children: Child[];
+  childrenList: Child[];
   assignedChildIds: string[];
 }
 
 export function ShareStoryDialog({
   storyId,
-  children: childrenList,
+  childrenList,
   assignedChildIds,
 }: ShareStoryDialogProps) {
   const [selected, setSelected] = useState<Set<string>>(
