@@ -3,7 +3,7 @@ import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { stories as storiesTable, userStories } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { getGradient, getStoryEmoji } from "@/lib/gradients";
@@ -26,7 +26,12 @@ export default async function LibraryPage() {
     .select()
     .from(userStories)
     .innerJoin(storiesTable, eq(userStories.story_id, storiesTable.id))
-    .where(eq(userStories.user_id, session.user.id));
+    .where(
+      and(
+        eq(userStories.user_id, session.user.id),
+        isNull(userStories.child_id)
+      )
+    );
 
   const readingList = rows.map((row) => ({
     ...row.user_stories,

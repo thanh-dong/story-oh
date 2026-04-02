@@ -2,7 +2,7 @@ import { redirect, notFound } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { stories as storiesTable, userStories } from "@/lib/db/schema";
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { StoryReader } from "@/components/story-reader";
 import type { Story } from "@/lib/types";
 
@@ -39,7 +39,8 @@ export default async function ReadPage({
       .where(
         and(
           eq(userStories.user_id, session.user.id),
-          eq(userStories.story_id, id)
+          eq(userStories.story_id, id),
+          isNull(userStories.child_id)
         )
       );
 
@@ -49,6 +50,7 @@ export default async function ReadPage({
       await db.insert(userStories).values({
         user_id: session.user.id,
         story_id: id,
+        child_id: null,
       });
     }
   }
