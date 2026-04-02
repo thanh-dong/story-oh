@@ -53,18 +53,18 @@ export function Navbar() {
   };
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b-2 border-primary/20 bg-background/95 backdrop-blur-sm">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
-        {/* Logo / App Name */}
+    <nav className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/90 backdrop-blur-md">
+      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:h-16 sm:px-6">
+        {/* Logo */}
         <Link
           href="/"
-          className="flex items-center gap-2 text-2xl font-extrabold tracking-tight transition-transform hover:scale-105"
+          className="flex items-center gap-2 text-xl font-extrabold tracking-tight transition-transform hover:scale-[1.03] sm:text-2xl"
         >
-          <span className="text-3xl" role="img" aria-label="open book">
-            📖
+          <span className="text-2xl sm:text-3xl" role="img" aria-label="open book">
+            &#x1F4D6;
           </span>
-          <span className="bg-gradient-to-r from-primary to-kid-pink bg-clip-text text-transparent">
-            StoryTime
+          <span className="text-foreground">
+            Story<span className="text-primary">Time</span>
           </span>
         </Link>
 
@@ -137,7 +137,7 @@ export function Navbar() {
 
       {/* Mobile Navigation */}
       {mobileMenuOpen && (
-        <div className="border-t border-primary/10 bg-background px-4 pb-4 pt-2 sm:hidden">
+        <div className="border-t border-border/40 bg-background px-4 pb-4 pt-2 sm:hidden">
           <div className="flex flex-col gap-2">
             <Button
               variant="ghost"

@@ -39,46 +39,39 @@ export default function LoginPage() {
 
   return (
     <div className="flex flex-col items-center py-12 sm:py-20">
-      <div className="w-full max-w-sm flex flex-col items-center gap-6">
-        <div className="text-5xl" aria-hidden="true">
-          🔑
+      <div className="w-full max-w-sm animate-fade-up space-y-6">
+        <div className="text-center">
+          <span className="inline-block text-5xl" aria-hidden="true">&#x1F4D6;</span>
+          <h1 className="mt-3 text-2xl font-extrabold tracking-tight sm:text-3xl">
+            Welcome to StoryTime
+          </h1>
+          <p className="mt-2 text-muted-foreground">
+            Sign in to save your reading progress
+          </p>
         </div>
 
-        <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
-          Welcome Back!
-        </h1>
-
-        <p className="text-center text-muted-foreground">
-          Enter your email to get a sign-in link
-        </p>
-
         {magicLink ? (
-          <div className="w-full rounded-xl border bg-card p-6 text-center">
-            <p className="text-4xl" aria-hidden="true">
-              🔗
-            </p>
+          <div className="animate-scale-in rounded-2xl bg-parchment p-6 text-center storybook-shadow">
+            <span className="text-4xl" aria-hidden="true">&#x2728;</span>
             <p className="mt-3 text-lg font-bold">
-              Dev Magic Link
+              Your magic link is ready!
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Click the link below to sign in as <strong>{email}</strong>
+              Click below to sign in as <strong>{email}</strong>
             </p>
             <a
               href={magicLink}
-              className="mt-4 inline-block rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground hover:bg-primary/80"
+              className="mt-4 inline-block rounded-full bg-primary px-6 py-2.5 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary/90"
             >
               Sign In Now
             </a>
-            <p className="mt-3 break-all rounded-lg bg-muted p-3 text-xs text-muted-foreground">
-              {magicLink}
-            </p>
           </div>
         ) : (
           <form
             onSubmit={handleSubmit}
-            className="w-full flex flex-col gap-4 rounded-xl border bg-card p-6"
+            className="space-y-4 rounded-2xl bg-card p-6 storybook-shadow"
           >
-            <div className="flex flex-col gap-2">
+            <div className="space-y-2">
               <Label htmlFor="email">Email address</Label>
               <Input
                 id="email"
@@ -88,17 +81,18 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 autoComplete="email"
+                className="rounded-xl"
               />
             </div>
 
             {error && (
-              <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              <p className="rounded-xl bg-destructive/10 px-3 py-2 text-sm text-destructive">
                 {error}
               </p>
             )}
 
-            <Button type="submit" disabled={loading} className="w-full">
-              {loading ? "Generating..." : "Get Magic Link"}
+            <Button type="submit" disabled={loading} className="w-full rounded-full text-base font-bold">
+              {loading ? "Sending..." : "Get Magic Link"}
             </Button>
           </form>
         )}

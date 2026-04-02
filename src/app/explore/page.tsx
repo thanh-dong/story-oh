@@ -4,31 +4,38 @@ import type { Story } from "@/lib/types";
 
 export default async function ExplorePage() {
   const supabase = await createClient();
-  const { data: stories } = await supabase
-    .from("stories")
-    .select("*")
-    .returns<Story[]>();
+  const stories: Story[] = [];
+  if (supabase) {
+    const { data } = await supabase
+      .from("stories")
+      .select("*")
+      .returns<Story[]>();
+    if (data) stories.push(...data);
+  }
 
   return (
-    <div>
-      <h1 className="mb-8 text-3xl font-extrabold tracking-tight sm:text-4xl">
-        Explore Stories{" "}
-        <span aria-hidden="true">{"\uD83E\uDDED"}</span>
-      </h1>
+    <div className="space-y-8">
+      <div className="animate-fade-up">
+        <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
+          Explore Stories
+        </h1>
+        <p className="mt-2 text-muted-foreground">
+          {stories.length} {stories.length === 1 ? "adventure" : "adventures"} waiting for you
+        </p>
+      </div>
 
-      {stories && stories.length > 0 ? (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {stories.length > 0 ? (
+        <div className="stagger-children grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {stories.map((story) => (
             <StoryCard key={story.id} story={story} />
           ))}
         </div>
       ) : (
-        <div className="flex flex-col items-center gap-4 py-20 text-center">
-          <span className="text-5xl" aria-hidden="true">
-            {"\uD83D\uDCDA"}
-          </span>
-          <p className="text-lg text-muted-foreground">
-            No stories available yet. Check back soon!
+        <div className="flex flex-col items-center gap-4 rounded-2xl bg-parchment py-20 text-center">
+          <span className="text-6xl" aria-hidden="true">&#x1F4DA;</span>
+          <p className="text-lg font-semibold">No stories yet</p>
+          <p className="text-muted-foreground">
+            New adventures are being written. Check back soon!
           </p>
         </div>
       )}

@@ -14,12 +14,12 @@ interface StoryReaderProps {
   userId: string | null;
 }
 
-const choiceColors = [
-  "bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white",
-  "bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white",
-  "bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white",
-  "bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white",
-  "bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white",
+const choiceStyles = [
+  "bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600",
+  "bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600",
+  "bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600",
+  "bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600",
+  "bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600",
 ];
 
 export function StoryReader({
@@ -27,9 +27,7 @@ export function StoryReader({
   initialProgress,
   userId,
 }: StoryReaderProps) {
-  const [currentNode, setCurrentNode] = useState(
-    initialProgress.current_node
-  );
+  const [currentNode, setCurrentNode] = useState(initialProgress.current_node);
   const [history, setHistory] = useState<string[]>(initialProgress.history);
   const [fadeState, setFadeState] = useState<"in" | "out">("in");
   const supabaseRef = useRef(createClient());
@@ -61,7 +59,7 @@ export function StoryReader({
       setHistory(newHistory);
       saveProgress(nextNodeId, newHistory);
       setFadeState("in");
-    }, 200);
+    }, 250);
   }
 
   function handleRestart() {
@@ -71,23 +69,23 @@ export function StoryReader({
       setHistory(["start"]);
       saveProgress("start", ["start"]);
       setFadeState("in");
-    }, 200);
+    }, 250);
   }
 
-  // Scroll to top on node change
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [currentNode]);
 
   if (!node) {
     return (
-      <div className="flex flex-col items-center justify-center gap-6 py-20 text-center">
-        <p className="text-xl text-muted-foreground">
-          Oops! This part of the story seems to be missing.
+      <div className="flex flex-col items-center justify-center gap-6 rounded-2xl bg-parchment py-20 text-center">
+        <span className="text-5xl" aria-hidden="true">&#x1F4D6;</span>
+        <p className="text-lg text-muted-foreground">
+          This part of the story seems to be missing.
         </p>
         <Button
           size="lg"
-          className="min-h-[56px] rounded-xl px-8 text-lg font-bold"
+          className="min-h-[56px] rounded-full px-8 text-lg font-bold"
           onClick={handleRestart}
         >
           <RotateCcw className="size-5" data-icon="inline-start" />
@@ -98,82 +96,68 @@ export function StoryReader({
   }
 
   return (
-    <div className="mx-auto max-w-2xl pb-12">
-      {/* Top bar with back button and story title */}
-      <div className="mb-6 flex items-center gap-3">
+    <div className="mx-auto max-w-2xl pb-16">
+      {/* Top bar */}
+      <div className="mb-6 flex items-center justify-between">
         <Button
           variant="ghost"
           size="lg"
-          className="min-h-[44px] min-w-[44px] rounded-xl"
+          className="min-h-[44px] rounded-xl"
           render={<Link href={`/story/${story.id}`} />}
         >
           <ArrowLeft className="size-5" data-icon="inline-start" />
           Back
         </Button>
-        <span className="truncate text-sm font-semibold text-muted-foreground">
-          {story.title}
-        </span>
+        <div className="flex items-center gap-2 rounded-full bg-parchment px-3 py-1.5 text-xs font-semibold text-muted-foreground">
+          <span aria-hidden="true">&#x1F4D6;</span>
+          Page {history.length}
+        </div>
       </div>
 
       {/* Gradient header */}
       <div
-        className={`relative mb-8 flex h-32 w-full items-center justify-center rounded-2xl bg-gradient-to-br ${gradient} sm:h-40`}
+        className={`relative mb-10 flex h-36 w-full items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br ${gradient} storybook-shadow sm:h-44`}
       >
-        <span className="text-6xl drop-shadow-lg" aria-hidden="true">
+        <span className="text-6xl drop-shadow-lg sm:text-7xl" aria-hidden="true">
           {emoji}
         </span>
-        {/* Progress indicator */}
-        <div className="absolute bottom-3 right-4 rounded-full bg-white/30 px-3 py-1 text-xs font-bold text-white backdrop-blur-sm">
-          Step {history.length}
-        </div>
       </div>
 
-      {/* Story content with fade animation */}
+      {/* Story content */}
       <div
-        className={`transition-all duration-200 ${
+        className={`transition-all duration-300 ease-out ${
           fadeState === "in"
             ? "translate-y-0 opacity-100"
-            : "translate-y-2 opacity-0"
+            : "translate-y-3 opacity-0"
         }`}
       >
         {isEnding ? (
-          /* ===== Ending Screen ===== */
           <div className="flex flex-col items-center gap-8 text-center">
-            {/* Celebration heading */}
-            <div className="space-y-3">
-              <p className="text-5xl" aria-hidden="true">
-                🎉✨🌟
-              </p>
-              <h2 className="text-4xl font-extrabold tracking-tight sm:text-5xl">
-                The End!
+            <div className="space-y-4">
+              <span className="inline-block text-5xl sm:text-6xl" aria-hidden="true">&#x2728;</span>
+              <h2 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
+                The End
               </h2>
-              <p className="text-4xl" aria-hidden="true">
-                🎊🥳⭐
+            </div>
+
+            <div className="rounded-2xl bg-parchment p-6 sm:p-8">
+              <p className="text-lg leading-relaxed sm:text-xl">
+                {node.text}
               </p>
             </div>
 
-            {/* Ending text */}
-            <p className="max-w-lg text-xl leading-relaxed text-muted-foreground sm:text-2xl">
-              {node.text}
+            <p className="text-sm font-medium text-muted-foreground">
+              You made{" "}
+              <span className="font-bold text-primary">
+                {history.length - 1} {history.length - 1 === 1 ? "choice" : "choices"}
+              </span>{" "}
+              on this adventure
             </p>
 
-            {/* Stats */}
-            <div className="rounded-2xl bg-muted/50 px-6 py-4">
-              <p className="text-sm font-semibold text-muted-foreground">
-                You made{" "}
-                <span className="text-primary">
-                  {history.length - 1}{" "}
-                  {history.length - 1 === 1 ? "choice" : "choices"}
-                </span>{" "}
-                on this adventure!
-              </p>
-            </div>
-
-            {/* Action buttons */}
             <div className="flex w-full flex-col gap-3 sm:flex-row sm:justify-center">
               <Button
                 size="lg"
-                className="min-h-[56px] flex-1 rounded-xl px-8 text-lg font-bold sm:max-w-[240px]"
+                className="min-h-[56px] flex-1 rounded-full px-8 text-lg font-bold sm:max-w-[220px]"
                 onClick={handleRestart}
               >
                 <RotateCcw className="size-5" data-icon="inline-start" />
@@ -182,40 +166,42 @@ export function StoryReader({
               <Button
                 variant="outline"
                 size="lg"
-                className="min-h-[56px] flex-1 rounded-xl px-8 text-lg font-bold sm:max-w-[240px]"
-                render={<Link href="/library" />}
+                className="min-h-[56px] flex-1 rounded-full px-8 text-lg font-bold sm:max-w-[220px]"
+                render={<Link href="/explore" />}
               >
                 <BookOpen className="size-5" data-icon="inline-start" />
-                Back to Library
+                More Stories
               </Button>
             </div>
           </div>
         ) : (
-          /* ===== Story Node ===== */
           <div className="space-y-8">
             {/* Story text */}
-            <p className="text-xl leading-relaxed sm:text-2xl">{node.text}</p>
-
-            {/* Choice heading */}
-            <div className="space-y-1">
-              <p className="text-base font-bold text-muted-foreground">
-                What do you do? 🤔
+            <div className="rounded-2xl bg-parchment p-6 storybook-shadow sm:p-8">
+              <p className="text-lg leading-[1.8] sm:text-xl sm:leading-[1.8]">
+                {node.text}
               </p>
             </div>
 
-            {/* Choice buttons */}
-            <div className="flex flex-col gap-3">
-              {node.choices.map((choice, index) => (
-                <button
-                  key={`${currentNode}-${choice.next}`}
-                  onClick={() => handleChoice(choice.next)}
-                  className={`min-h-[56px] w-full rounded-xl px-6 py-4 text-lg font-bold shadow-md transition-all duration-150 hover:scale-[1.02] hover:shadow-lg active:scale-[0.98] ${
-                    choiceColors[index % choiceColors.length]
-                  }`}
-                >
-                  {choice.label}
-                </button>
-              ))}
+            {/* Choices */}
+            <div className="space-y-4">
+              <p className="text-center text-sm font-bold text-muted-foreground">
+                What do you do?
+              </p>
+
+              <div className="flex flex-col gap-3">
+                {node.choices.map((choice, index) => (
+                  <button
+                    key={`${currentNode}-${choice.next}`}
+                    onClick={() => handleChoice(choice.next)}
+                    className={`min-h-[56px] w-full rounded-2xl px-6 py-4 text-lg font-bold text-white shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 sm:text-xl ${
+                      choiceStyles[index % choiceStyles.length]
+                    }`}
+                  >
+                    {choice.label}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         )}

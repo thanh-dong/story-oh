@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Nunito, Geist_Mono } from "next/font/google";
 import { Navbar } from "@/components/navbar";
 import "./globals.css";
@@ -20,6 +20,12 @@ export const metadata: Metadata = {
     "Choose-your-own-adventure stories for kids ages 4-12. Explore magical worlds, make exciting choices, and create your own story path!",
 };
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -33,10 +39,13 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <Navbar />
         <main className="flex-1">
-          <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
+          <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-10">
             {children}
           </div>
         </main>
+        <footer className="border-t border-border/40 py-6 text-center text-xs text-muted-foreground/60">
+          StoryTime &mdash; Stories that teach, choices that matter
+        </footer>
       </body>
     </html>
   );

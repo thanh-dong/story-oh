@@ -1,41 +1,45 @@
 import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getGradient, getStoryEmoji } from "@/lib/gradients";
 import type { Story } from "@/lib/types";
 
 export function StoryCard({ story }: { story: Story }) {
   const gradient = getGradient(story.title);
+  const nodeCount = Object.keys(story.story_tree).length;
+  const endingCount = Object.values(story.story_tree).filter(
+    (n) => n.choices.length === 0
+  ).length;
 
   return (
-    <Link href={`/story/${story.id}`} className="block">
-      <Card className="h-full transition-all duration-200 hover:scale-[1.03] hover:shadow-xl">
-        {/* Gradient cover placeholder */}
+    <Link href={`/story/${story.id}`} className="group block">
+      <article className="relative h-full overflow-hidden rounded-2xl bg-card storybook-shadow transition-all duration-300 hover:-translate-y-1 hover:storybook-shadow-lg">
+        {/* Gradient cover */}
         <div
-          className={`h-36 w-full bg-gradient-to-br ${gradient} flex items-center justify-center rounded-t-xl`}
+          className={`relative h-40 w-full bg-gradient-to-br ${gradient} flex items-center justify-center sm:h-44`}
         >
-          <span className="text-5xl drop-shadow-md" aria-hidden="true">
+          <span className="text-5xl drop-shadow-md transition-transform duration-300 group-hover:scale-110 sm:text-6xl" aria-hidden="true">
             {getStoryEmoji(story.title)}
           </span>
+          <Badge className="absolute right-3 top-3 bg-white/25 text-white backdrop-blur-sm border-0 text-xs font-bold">
+            {story.age_range}
+          </Badge>
         </div>
 
-        <CardHeader>
-          <div className="flex items-start justify-between gap-2">
-            <CardTitle className="text-lg font-bold leading-snug">
-              {story.title}
-            </CardTitle>
-            <Badge variant="secondary" className="shrink-0 text-xs">
-              {story.age_range}
-            </Badge>
-          </div>
-        </CardHeader>
-
-        <CardContent>
-          <p className="line-clamp-2 text-sm text-muted-foreground">
+        {/* Content */}
+        <div className="space-y-2 p-4 sm:p-5">
+          <h3 className="text-lg font-bold leading-snug tracking-tight">
+            {story.title}
+          </h3>
+          <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
             {story.summary}
           </p>
-        </CardContent>
-      </Card>
+          <div className="flex items-center gap-3 pt-1 text-xs font-medium text-muted-foreground/70">
+            <span>{nodeCount} pages</span>
+            <span aria-hidden="true">&middot;</span>
+            <span>{endingCount} {endingCount === 1 ? "ending" : "endings"}</span>
+          </div>
+        </div>
+      </article>
     </Link>
   );
 }

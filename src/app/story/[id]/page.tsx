@@ -17,9 +17,7 @@ function countChoices(tree: StoryTree): number {
 function countEndings(tree: StoryTree): number {
   let endings = 0;
   for (const node of Object.values(tree)) {
-    if (node.choices.length === 0) {
-      endings++;
-    }
+    if (node.choices.length === 0) endings++;
   }
   return endings;
 }
@@ -32,6 +30,7 @@ export default async function StoryDetailPage({
   const { id } = await params;
 
   const supabase = await createClient();
+  if (!supabase) notFound();
   const { data: story } = await supabase
     .from("stories")
     .select("*")
@@ -44,55 +43,52 @@ export default async function StoryDetailPage({
   const emoji = getStoryEmoji(story.title);
   const totalChoices = countChoices(story.story_tree);
   const totalEndings = countEndings(story.story_tree);
+  const totalPages = Object.keys(story.story_tree).length;
 
   return (
-    <div className="mx-auto max-w-2xl">
-      {/* Gradient cover area */}
+    <div className="mx-auto max-w-2xl animate-fade-up pb-12">
+      {/* Gradient cover */}
       <div
-        className={`relative flex h-56 w-full items-center justify-center rounded-2xl bg-gradient-to-br ${gradient} sm:h-64`}
+        className={`relative flex h-48 w-full items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br ${gradient} storybook-shadow sm:h-64`}
       >
-        <span className="text-7xl drop-shadow-lg" aria-hidden="true">
+        <span className="text-7xl drop-shadow-lg sm:text-8xl" aria-hidden="true">
           {emoji}
         </span>
       </div>
 
       {/* Story info */}
       <div className="mt-8 space-y-6">
-        {/* Title and age badge */}
         <div className="flex flex-wrap items-start gap-3">
           <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
             {story.title}
           </h1>
-          <Badge variant="secondary" className="mt-1 text-sm">
-            {story.age_range}
+          <Badge variant="secondary" className="mt-1.5 text-sm">
+            Ages {story.age_range}
           </Badge>
         </div>
 
-        {/* Full summary */}
         <p className="text-lg leading-relaxed text-muted-foreground">
           {story.summary}
         </p>
 
-        {/* Story stats */}
-        <div className="flex flex-wrap gap-6 text-sm text-muted-foreground">
+        {/* Stats */}
+        <div className="flex flex-wrap gap-4 rounded-2xl bg-parchment p-4 text-sm font-medium text-muted-foreground">
           <div className="flex items-center gap-1.5">
-            <span aria-hidden="true">{"\uD83D\uDD00"}</span>
-            <span>
-              {totalChoices} {totalChoices === 1 ? "choice" : "choices"} to make
-            </span>
+            <span aria-hidden="true">&#x1F4D6;</span>
+            <span>{totalPages} pages</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span aria-hidden="true">{"\uD83C\uDFC1"}</span>
-            <span>
-              {totalEndings} possible{" "}
-              {totalEndings === 1 ? "ending" : "endings"}
-            </span>
+            <span aria-hidden="true">&#x1F500;</span>
+            <span>{totalChoices} choices</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span aria-hidden="true">&#x2728;</span>
+            <span>{totalEndings} {totalEndings === 1 ? "ending" : "endings"}</span>
           </div>
         </div>
 
-        {/* Start Reading CTA */}
         <Link href={`/story/${story.id}/read`} className="block">
-          <Button size="lg" className="w-full text-base font-bold py-6">
+          <Button size="lg" className="w-full rounded-full py-6 text-lg font-bold storybook-shadow transition-shadow hover:storybook-shadow-lg">
             Start Reading
           </Button>
         </Link>
