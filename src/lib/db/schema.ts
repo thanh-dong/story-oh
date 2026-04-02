@@ -21,7 +21,7 @@ export const stories = pgTable("stories", {
   age_range: text("age_range").notNull().default("4-8"),
   require_login: boolean("require_login").notNull().default(false),
   story_tree: jsonb("story_tree").$type<StoryTree>().notNull(),
-  created_at: timestamp("created_at", { withTimezone: true, mode: "string" }).defaultNow(),
+  created_at: timestamp("created_at", { withTimezone: true, mode: "string" }).notNull().defaultNow(),
 });
 
 export const userStories = pgTable(

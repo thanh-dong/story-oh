@@ -12,11 +12,11 @@ async function seed() {
 
   for (const account of accounts) {
     // Check if user already exists
-    const [existing] = await db.execute(
+    const result = await db.execute(
       sql`SELECT id FROM "user" WHERE email = ${account.email}`
     );
 
-    if (existing) {
+    if (result.rows.length > 0) {
       console.log(`  ✓ ${account.email} already exists`);
       continue;
     }
