@@ -3,10 +3,12 @@ import {
   uuid,
   text,
   real,
+  integer,
   boolean,
   jsonb,
   timestamp,
   primaryKey,
+  index,
 } from "drizzle-orm/pg-core";
 import type { StoryTree } from "@/lib/types";
 
@@ -19,6 +21,7 @@ export const user = pgTable("user", {
   emailVerified: boolean("emailVerified").notNull().default(false),
   image: text("image"),
   role: text("role").notNull().default("user"),
+  credits: integer("credits").notNull().default(100),
   createdAt: timestamp("createdAt", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updatedAt", { withTimezone: true }).notNull().defaultNow(),
 });
@@ -85,4 +88,23 @@ export const userStories = pgTable(
     created_at: timestamp("created_at", { withTimezone: true, mode: "string" }).defaultNow(),
   },
   (table) => [primaryKey({ columns: [table.user_id, table.story_id] })]
+);
+
+export const creditTransactions = pgTable(
+  "credit_transactions",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    user_id: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    amount: integer("amount").notNull(),
+    balance_after: integer("balance_after").notNull(),
+    type: text("type").notNull(),
+    description: text("description"),
+    metadata: jsonb("metadata").$type<Record<string, unknown>>(),
+    created_at: timestamp("created_at", { withTimezone: true, mode: "string" })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [index("credit_transactions_user_id_idx").on(table.user_id)]
 );
