@@ -11,6 +11,7 @@ interface StoryReaderProps {
   story: Story;
   initialProgress: { current_node: string; history: string[] };
   userId: string | null;
+  childId?: string | null;
 }
 
 const choiceStyles = [
@@ -25,6 +26,7 @@ export function StoryReader({
   story,
   initialProgress,
   userId,
+  childId,
 }: StoryReaderProps) {
   const [currentNode, setCurrentNode] = useState(initialProgress.current_node);
   const [history, setHistory] = useState<string[]>(initialProgress.history);
@@ -41,10 +43,14 @@ export function StoryReader({
       fetch(`/api/stories/${story.id}/progress`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ current_node: nodeId, history: newHistory }),
+        body: JSON.stringify({
+          current_node: nodeId,
+          history: newHistory,
+          childId: childId ?? undefined,
+        }),
       }).catch(() => {});
     },
-    [story.id, userId]
+    [story.id, userId, childId]
   );
 
   // ── TTS ──
