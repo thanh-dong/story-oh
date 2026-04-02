@@ -16,12 +16,20 @@ export function Navbar() {
   const router = useRouter();
 
   useEffect(() => {
-    if (user && user.role !== "admin") {
+    if (!user || user.role === "admin") return;
+
+    function fetchCredits() {
       fetch("/api/me/credits")
         .then((r) => r.json())
         .then((d) => setCredits(d.credits))
         .catch(() => {});
     }
+
+    fetchCredits();
+
+    // Listen for credit updates from other components
+    window.addEventListener("credits-updated", fetchCredits);
+    return () => window.removeEventListener("credits-updated", fetchCredits);
   }, [user]);
 
   const handleLogout = async () => {

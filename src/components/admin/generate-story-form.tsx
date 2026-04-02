@@ -77,6 +77,7 @@ export function GenerateStoryForm({
       if (data.credits_charged !== undefined) {
         setChargeInfo({ charged: data.credits_charged, remaining: data.credits_remaining });
         onCreditsUsed?.(data.credits_charged, data.credits_remaining);
+        window.dispatchEvent(new Event("credits-updated"));
       }
 
       onGenerated({
