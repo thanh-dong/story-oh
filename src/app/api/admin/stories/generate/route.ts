@@ -2,10 +2,16 @@ import { NextResponse } from "next/server";
 import type { GenerateStoryRequest, StoryTree } from "@/lib/types";
 
 function validateRequest(body: unknown): { valid: true; data: GenerateStoryRequest } | { valid: false; error: string } {
+  if (typeof body !== "object" || body === null || Array.isArray(body)) {
+    return { valid: false, error: "Request body must be a JSON object" };
+  }
   const b = body as Record<string, unknown>;
 
   if (!b.keyword || typeof b.keyword !== "string" || b.keyword.trim() === "") {
     return { valid: false, error: "keyword is required" };
+  }
+  if (b.keyword.length > 200) {
+    return { valid: false, error: "keyword must be 200 characters or less" };
   }
   if (b.audienceAge !== "4-8" && b.audienceAge !== "8-12") {
     return { valid: false, error: "audienceAge must be '4-8' or '8-12'" };
@@ -13,8 +19,8 @@ function validateRequest(body: unknown): { valid: true; data: GenerateStoryReque
   if (typeof b.isForChildren !== "boolean") {
     return { valid: false, error: "isForChildren must be a boolean" };
   }
-  if (typeof b.expectedReadingTime !== "number" || b.expectedReadingTime <= 0) {
-    return { valid: false, error: "expectedReadingTime must be a positive number" };
+  if (typeof b.expectedReadingTime !== "number" || b.expectedReadingTime <= 0 || b.expectedReadingTime > 30) {
+    return { valid: false, error: "expectedReadingTime must be between 1 and 30 minutes" };
   }
   if (b.difficulty !== "easy" && b.difficulty !== "medium" && b.difficulty !== "hard") {
     return { valid: false, error: "difficulty must be 'easy', 'medium', or 'hard'" };
@@ -22,8 +28,8 @@ function validateRequest(body: unknown): { valid: true; data: GenerateStoryReque
   if (typeof b.minBranches !== "number" || b.minBranches < 1) {
     return { valid: false, error: "minBranches must be at least 1" };
   }
-  if (typeof b.maxBranches !== "number" || b.maxBranches < b.minBranches) {
-    return { valid: false, error: "maxBranches must be >= minBranches" };
+  if (typeof b.maxBranches !== "number" || b.maxBranches < b.minBranches || b.maxBranches > 20) {
+    return { valid: false, error: "maxBranches must be >= minBranches and <= 20" };
   }
 
   return { valid: true, data: b as unknown as GenerateStoryRequest };
