@@ -96,8 +96,19 @@ function buildPrompt(req: GenerateStoryRequest): { system: string; user: string 
   const nodeCount = req.expectedReadingTime * 3;
   const langName = LANGUAGE_NAMES[req.language] || "English";
 
+  const ageLesson = req.audienceAge === "4-8"
+    ? "sharing, kindness, saying please/thank you, being brave, helping others, telling the truth, being patient"
+    : "empathy, responsibility, teamwork, handling mistakes, respecting differences, managing emotions, perseverance";
+
   const system = `You are a children's story writer. You create interactive branching stories in JSON format.
 You MUST write all story content (title, summary, node text, choice labels) in ${langName}.
+
+Every story MUST weave in a gentle life lesson appropriate for the target age group. The lesson should:
+- Be about everyday basics: ${ageLesson}
+- Emerge naturally from the story — never preachy or lecture-like
+- Let the reader discover the lesson through the characters' experiences and choices
+- Show consequences of choices gently (good choices lead to warm outcomes, poor choices lead to learning moments, never punishment)
+- End each story path with a moment of reflection or realization by the main character
 
 Output ONLY valid JSON matching this exact schema:
 ${RESPONSE_SCHEMA}
