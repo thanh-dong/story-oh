@@ -49,10 +49,7 @@ export function StoryCard({ story, childrenList, assignedChildIds }: StoryCardPr
       </Link>
 
       {childrenList && childrenList.length > 0 && (
-        <div
-          className="absolute left-3 top-3 z-10"
-          onClick={(e) => e.stopPropagation()}
-        >
+        <div className="absolute left-3 top-3 z-10">
           <ShareStoryDialog
             storyId={story.id}
             childrenList={childrenList}
