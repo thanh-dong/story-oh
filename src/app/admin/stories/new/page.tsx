@@ -2,8 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { StoryForm } from "@/components/admin/story-form";
 import { GenerateStoryForm } from "@/components/admin/generate-story-form";
+import { Button } from "@/components/ui/button";
 import type { GenerateStoryResponse, StoryTree } from "@/lib/types";
 
 type Mode = "manual" | "generate";
@@ -20,6 +23,7 @@ export default function CreateStoryPage() {
     age_range: string;
     price: number;
     cover_image: string | null;
+    require_login: boolean;
     story_tree: StoryTree;
   }) {
     setSaving(true);
@@ -53,14 +57,21 @@ export default function CreateStoryPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-extrabold">Create New Story</h1>
+      <div className="flex items-center gap-3">
+        <Button variant="ghost" size="icon" className="rounded-lg" render={<Link href="/admin" />}>
+          <ArrowLeft className="size-5" />
+        </Button>
+        <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
+          Create Story
+        </h1>
+      </div>
 
-      <div className="flex gap-1 border-b border-border">
+      <div className="flex gap-1 rounded-xl bg-muted p-1">
         <button
           onClick={() => setMode("manual")}
-          className={`px-4 py-2 text-sm font-medium transition-colors ${
+          className={`flex-1 rounded-lg px-4 py-2 text-sm font-semibold transition-all ${
             mode === "manual"
-              ? "border-b-2 border-primary text-primary"
+              ? "bg-card text-foreground storybook-shadow"
               : "text-muted-foreground hover:text-foreground"
           }`}
         >
@@ -68,9 +79,9 @@ export default function CreateStoryPage() {
         </button>
         <button
           onClick={() => setMode("generate")}
-          className={`px-4 py-2 text-sm font-medium transition-colors ${
+          className={`flex-1 rounded-lg px-4 py-2 text-sm font-semibold transition-all ${
             mode === "generate"
-              ? "border-b-2 border-primary text-primary"
+              ? "bg-card text-foreground storybook-shadow"
               : "text-muted-foreground hover:text-foreground"
           }`}
         >

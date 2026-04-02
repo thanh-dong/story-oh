@@ -7,6 +7,7 @@ import type { SupabaseClient, User } from "@supabase/supabase-js";
 import { BookOpen, Library, LogIn, LogOut, Menu, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export function Navbar() {
   const [user, setUser] = useState<User | null>(null);
@@ -92,6 +93,8 @@ export function Navbar() {
             </Button>
           )}
 
+          <ThemeToggle />
+
           {user ? (
             <div className="flex items-center gap-2 ml-2">
               <div className="flex size-9 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
@@ -119,20 +122,23 @@ export function Navbar() {
           )}
         </div>
 
-        {/* Mobile Menu Button */}
-        <Button
-          variant="ghost"
-          size="icon-lg"
-          className="min-h-[44px] min-w-[44px] rounded-xl sm:hidden"
+        {/* Mobile: theme toggle + menu */}
+        <div className="flex items-center gap-1 sm:hidden">
+          <ThemeToggle />
+          <Button
+            variant="ghost"
+            size="icon-lg"
+            className="min-h-[44px] min-w-[44px] rounded-xl"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
-        >
-          {mobileMenuOpen ? (
-            <X className="size-6" />
-          ) : (
-            <Menu className="size-6" />
-          )}
-        </Button>
+            aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+          >
+            {mobileMenuOpen ? (
+              <X className="size-6" />
+            ) : (
+              <Menu className="size-6" />
+            )}
+          </Button>
+        </div>
       </div>
 
       {/* Mobile Navigation */}

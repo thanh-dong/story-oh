@@ -2,21 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { MoreHorizontal } from "lucide-react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Pencil, Plus, Trash2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -25,6 +11,8 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { getGradient, getStoryEmoji } from "@/lib/gradients";
 import type { Story } from "@/lib/types";
 
 export default function AdminPage() {
@@ -59,7 +47,11 @@ export default function AdminPage() {
   }
 
   function formatDate(dateStr: string): string {
-    return new Date(dateStr).toLocaleDateString();
+    return new Date(dateStr).toLocaleDateString(undefined, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
   }
 
   async function handleDelete() {
@@ -76,73 +68,121 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
+      {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-extrabold">Story Admin</h1>
+        <div>
+          <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
+            Stories
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {stories.length} {stories.length === 1 ? "story" : "stories"} in your library
+          </p>
+        </div>
         <Link href="/admin/stories/new">
-          <Button>Create New Story</Button>
+          <Button className="rounded-full font-bold">
+            <Plus className="size-4" data-icon="inline-start" />
+            New Story
+          </Button>
         </Link>
       </div>
 
+      {/* Stories grid */}
       {loading ? (
-        <p className="text-muted-foreground">Loading stories...</p>
-      ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Title</TableHead>
-              <TableHead>Age Range</TableHead>
-              <TableHead>Nodes</TableHead>
-              <TableHead>Endings</TableHead>
-              <TableHead>Created</TableHead>
-              <TableHead className="w-10" />
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {stories.map((story) => (
-              <TableRow key={story.id}>
-                <TableCell className="font-medium">{story.title}</TableCell>
-                <TableCell>{story.age_range}</TableCell>
-                <TableCell>{countNodes(story)}</TableCell>
-                <TableCell>{countEndings(story)}</TableCell>
-                <TableCell>{formatDate(story.created_at)}</TableCell>
-                <TableCell>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger>
-                      <Button variant="ghost" size="icon">
-                        <MoreHorizontal className="size-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem
-                        onClick={() => {
-                          window.location.href = `/admin/stories/${story.id}`;
-                        }}
+        <div className="stagger-children grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-64 animate-pulse rounded-2xl bg-muted" />
+          ))}
+        </div>
+      ) : stories.length > 0 ? (
+        <div className="stagger-children grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {stories.map((story) => {
+            const gradient = getGradient(story.title);
+            const emoji = getStoryEmoji(story.title);
+
+            return (
+              <article
+                key={story.id}
+                className="group relative overflow-hidden rounded-2xl bg-card storybook-shadow transition-all duration-300 hover:-translate-y-0.5 hover:storybook-shadow-lg"
+              >
+                {/* Cover */}
+                <div
+                  className={`relative flex h-28 items-center justify-center bg-gradient-to-br ${gradient}`}
+                >
+                  <span className="text-4xl drop-shadow-md" aria-hidden="true">
+                    {emoji}
+                  </span>
+                  <Badge className="absolute left-3 top-3 border-0 bg-white/25 text-white backdrop-blur-sm text-xs font-bold">
+                    {story.age_range}
+                  </Badge>
+                  {story.require_login && (
+                    <Badge className="absolute right-3 top-3 border-0 bg-white/25 text-white backdrop-blur-sm text-xs font-bold">
+                      &#x1F512;
+                    </Badge>
+                  )}
+                </div>
+
+                {/* Info */}
+                <div className="p-4">
+                  <h3 className="font-bold leading-snug tracking-tight">
+                    {story.title}
+                  </h3>
+                  <p className="mt-1 line-clamp-1 text-sm text-muted-foreground">
+                    {story.summary}
+                  </p>
+
+                  {/* Stats row */}
+                  <div className="mt-3 flex items-center gap-3 text-xs text-muted-foreground/70">
+                    <span>{countNodes(story)} pages</span>
+                    <span>&middot;</span>
+                    <span>{countEndings(story)} endings</span>
+                    <span>&middot;</span>
+                    <span>{formatDate(story.created_at)}</span>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="mt-3 flex items-center gap-2">
+                    <Link href={`/admin/stories/${story.id}`} className="flex-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full rounded-lg text-xs font-semibold"
                       >
+                        <Pencil className="size-3" data-icon="inline-start" />
                         Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        variant="destructive"
-                        onClick={() => setDeleteTarget(story)}
-                      >
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-            ))}
-            {stories.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={6} className="text-center text-muted-foreground">
-                  No stories yet.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+                      </Button>
+                    </Link>
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      className="shrink-0 rounded-lg text-muted-foreground hover:text-destructive"
+                      onClick={() => setDeleteTarget(story)}
+                    >
+                      <Trash2 className="size-3.5" />
+                    </Button>
+                  </div>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="flex flex-col items-center gap-4 rounded-2xl bg-parchment py-20 text-center">
+          <span className="text-6xl" aria-hidden="true">&#x1F4DD;</span>
+          <p className="text-lg font-semibold">No stories yet</p>
+          <p className="text-sm text-muted-foreground">
+            Create your first interactive story
+          </p>
+          <Link href="/admin/stories/new">
+            <Button className="mt-2 rounded-full px-6 font-bold">
+              <Plus className="size-4" data-icon="inline-start" />
+              Create Story
+            </Button>
+          </Link>
+        </div>
       )}
 
+      {/* Delete confirmation */}
       <Dialog
         open={deleteTarget !== null}
         onOpenChange={(open) => {
@@ -153,18 +193,20 @@ export default function AdminPage() {
           <DialogHeader>
             <DialogTitle>Delete Story</DialogTitle>
           </DialogHeader>
-          <p>
+          <p className="text-muted-foreground">
             Are you sure you want to delete{" "}
-            <strong>{deleteTarget?.title}</strong>? This action cannot be undone.
+            <strong className="text-foreground">{deleteTarget?.title}</strong>?
+            This action cannot be undone.
           </p>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteTarget(null)}>
+            <Button variant="outline" onClick={() => setDeleteTarget(null)} className="rounded-lg">
               Cancel
             </Button>
             <Button
               variant="destructive"
               onClick={handleDelete}
               disabled={deleting}
+              className="rounded-lg"
             >
               {deleting ? "Deleting..." : "Delete"}
             </Button>
