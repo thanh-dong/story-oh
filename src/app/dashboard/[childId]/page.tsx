@@ -89,11 +89,6 @@ export default async function ChildHubPage({
           <p className="text-muted-foreground">
             Ask your parent to pick some stories for you.
           </p>
-          <Link href="/explore">
-            <Button variant="outline" className="rounded-full px-6 font-bold">
-              Explore Stories
-            </Button>
-          </Link>
         </div>
       ) : (
         <>

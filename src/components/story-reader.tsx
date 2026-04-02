@@ -12,6 +12,8 @@ interface StoryReaderProps {
   initialProgress: { current_node: string; history: string[] };
   userId: string | null;
   childId?: string | null;
+  backHref?: string;
+  moreStoriesHref?: string;
 }
 
 const choiceStyles = [
@@ -27,6 +29,8 @@ export function StoryReader({
   initialProgress,
   userId,
   childId,
+  backHref,
+  moreStoriesHref,
 }: StoryReaderProps) {
   const [currentNode, setCurrentNode] = useState(initialProgress.current_node);
   const [history, setHistory] = useState<string[]>(initialProgress.history);
@@ -166,7 +170,7 @@ export function StoryReader({
           variant="ghost"
           size="lg"
           className="min-h-[44px] rounded-xl"
-          render={<Link href={`/story/${story.id}`} />}
+          render={<Link href={backHref ?? `/story/${story.id}`} />}
         >
           <ArrowLeft className="size-5" data-icon="inline-start" />
           Back
@@ -246,7 +250,7 @@ export function StoryReader({
                 variant="outline"
                 size="lg"
                 className="min-h-[56px] flex-1 rounded-full px-8 text-lg font-bold sm:max-w-[220px]"
-                render={<Link href="/explore" />}
+                render={<Link href={moreStoriesHref ?? "/explore"} />}
               >
                 <BookOpen className="size-5" data-icon="inline-start" />
                 More Stories
