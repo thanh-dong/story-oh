@@ -1,31 +1,19 @@
-import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
-
-function getAdminClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
-}
+import { db } from "@/lib/db";
+import { stories } from "@/lib/db/schema";
+import { desc } from "drizzle-orm";
 
 export async function GET() {
-  const supabase = getAdminClient();
-  const { data, error } = await supabase
-    .from("stories")
-    .select("*")
-    .order("created_at", { ascending: false });
-
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  const data = await db.select().from(stories).orderBy(desc(stories.created_at));
   return NextResponse.json(data);
 }
 
 export async function POST(request: Request) {
   const body = await request.json();
-  const supabase = getAdminClient();
 
-  const { data, error } = await supabase
-    .from("stories")
-    .insert({
+  const [data] = await db
+    .insert(stories)
+    .values({
       title: body.title,
       summary: body.summary,
       age_range: body.age_range,
@@ -34,9 +22,7 @@ export async function POST(request: Request) {
       require_login: body.require_login ?? false,
       story_tree: body.story_tree,
     })
-    .select()
-    .single();
+    .returning();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
   return NextResponse.json(data, { status: 201 });
 }
