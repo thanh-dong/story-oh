@@ -27,8 +27,10 @@ export interface Story {
 }
 
 export interface UserStory {
+  id: string;
   user_id: string;
   story_id: string;
+  child_id: string | null;
   progress: {
     current_node: string;
     history: string[];
@@ -52,4 +54,23 @@ export interface GenerateStoryResponse {
   summary: string;
   age_range: string;
   story_tree: StoryTree;
+}
+
+export interface Child {
+  id: string;
+  parentId: string;
+  name: string;
+  dateOfBirth: string;
+  avatar: string;
+  nativeLanguage: string;
+  learningLanguages: string[];
+  interests: string[];
+  dailyGoalMinutes: number | null;
+  createdAt: string;
+}
+
+export interface ChildWithStats extends Child {
+  assignedCount: number;
+  completedCount: number;
+  inProgressCount: number;
 }
