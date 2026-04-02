@@ -47,6 +47,7 @@ export function GenerateStoryForm({ onGenerated }: GenerateStoryFormProps) {
           minBranches,
           maxBranches,
         }),
+        signal: AbortSignal.timeout(90000),
       });
 
       if (!res.ok) {
@@ -57,7 +58,12 @@ export function GenerateStoryForm({ onGenerated }: GenerateStoryFormProps) {
       const data: GenerateStoryResponse = await res.json();
       onGenerated(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Generation failed. Please try again.");
+      const message = err instanceof Error
+        ? err.name === "TimeoutError"
+          ? "Request timed out. Please try again."
+          : err.message
+        : "Generation failed. Please try again.";
+      setError(message);
     } finally {
       setLoading(false);
     }
