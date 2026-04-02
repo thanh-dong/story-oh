@@ -112,8 +112,9 @@ export function GenerateStoryForm({ onGenerated }: GenerateStoryFormProps) {
           id="reading-time"
           type="number"
           min={1}
+          max={30}
           value={expectedReadingTime}
-          onChange={(e) => setExpectedReadingTime(Math.max(1, Number(e.target.value)))}
+          onChange={(e) => setExpectedReadingTime(Math.max(1, Math.min(30, Number(e.target.value))))}
         />
       </div>
 
@@ -149,8 +150,9 @@ export function GenerateStoryForm({ onGenerated }: GenerateStoryFormProps) {
             id="max-branches"
             type="number"
             min={minBranches}
+            max={20}
             value={maxBranches}
-            onChange={(e) => setMaxBranches(Math.max(minBranches, Number(e.target.value)))}
+            onChange={(e) => setMaxBranches(Math.max(minBranches, Math.min(20, Number(e.target.value))))}
           />
         </div>
       </div>
