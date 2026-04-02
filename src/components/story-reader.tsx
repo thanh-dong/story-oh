@@ -201,20 +201,22 @@ export function StoryReader({
               <p className="text-lg leading-relaxed sm:text-xl">
                 {node.text}
               </p>
-              <button
-                onClick={() => handleReadAloud(node.text)}
-                disabled={ttsState === "loading"}
-                className="absolute right-3 top-3 flex size-9 items-center justify-center rounded-full bg-card text-muted-foreground transition-colors hover:text-primary storybook-shadow"
-                aria-label={ttsState === "playing" ? "Stop reading" : "Read aloud"}
-              >
-                {ttsState === "loading" ? (
-                  <Loader2 className="size-4 animate-spin" />
-                ) : ttsState === "playing" ? (
-                  <VolumeX className="size-4" />
-                ) : (
-                  <Volume2 className="size-4" />
-                )}
-              </button>
+              {userId && (
+                <button
+                  onClick={() => handleReadAloud(node.text)}
+                  disabled={ttsState === "loading"}
+                  className="absolute right-3 top-3 flex size-9 items-center justify-center rounded-full bg-card text-muted-foreground transition-colors hover:text-primary storybook-shadow"
+                  aria-label={ttsState === "playing" ? "Stop reading" : "Read aloud"}
+                >
+                  {ttsState === "loading" ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : ttsState === "playing" ? (
+                    <VolumeX className="size-4" />
+                  ) : (
+                    <Volume2 className="size-4" />
+                  )}
+                </button>
+              )}
             </div>
 
             <p className="text-sm font-medium text-muted-foreground">
@@ -252,20 +254,22 @@ export function StoryReader({
               <p className="text-lg leading-[1.8] sm:text-xl sm:leading-[1.8]">
                 {node.text}
               </p>
-              <button
-                onClick={() => handleReadAloud(node.text)}
-                disabled={ttsState === "loading"}
-                className="absolute right-3 top-3 flex size-9 items-center justify-center rounded-full bg-card text-muted-foreground transition-colors hover:text-primary storybook-shadow"
-                aria-label={ttsState === "playing" ? "Stop reading" : "Read aloud"}
-              >
-                {ttsState === "loading" ? (
-                  <Loader2 className="size-4 animate-spin" />
-                ) : ttsState === "playing" ? (
-                  <VolumeX className="size-4" />
-                ) : (
-                  <Volume2 className="size-4" />
-                )}
-              </button>
+              {userId && (
+                <button
+                  onClick={() => handleReadAloud(node.text)}
+                  disabled={ttsState === "loading"}
+                  className="absolute right-3 top-3 flex size-9 items-center justify-center rounded-full bg-card text-muted-foreground transition-colors hover:text-primary storybook-shadow"
+                  aria-label={ttsState === "playing" ? "Stop reading" : "Read aloud"}
+                >
+                  {ttsState === "loading" ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : ttsState === "playing" ? (
+                    <VolumeX className="size-4" />
+                  ) : (
+                    <Volume2 className="size-4" />
+                  )}
+                </button>
+              )}
             </div>
 
             {/* Choices */}
