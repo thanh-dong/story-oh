@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
-import { BookOpen, Library, LogIn, LogOut, Menu, Shield, X } from "lucide-react";
+import { BookOpen, Library, LogIn, LogOut, Menu, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 
@@ -24,6 +24,7 @@ export function Navbar() {
 
   useEffect(() => {
     const supabase = getSupabase();
+    if (!supabase) return;
 
     // Get the initial session
     supabase.auth.getUser().then(({ data: { user: u } }) => {
@@ -45,6 +46,7 @@ export function Navbar() {
 
   const handleLogout = async () => {
     const supabase = getSupabase();
+    if (!supabase) return;
     await supabase.auth.signOut();
     setMobileMenuOpen(false);
     router.refresh();
@@ -76,16 +78,6 @@ export function Navbar() {
           >
             <BookOpen className="size-5" data-icon="inline-start" />
             Explore
-          </Button>
-
-          <Button
-            variant="ghost"
-            size="lg"
-            className="min-h-[44px] min-w-[44px] rounded-xl text-base font-semibold"
-            render={<Link href="/admin" />}
-          >
-            <Shield className="size-5" data-icon="inline-start" />
-            Admin
           </Button>
 
           {user && (
@@ -156,17 +148,6 @@ export function Navbar() {
             >
               <BookOpen className="size-5" data-icon="inline-start" />
               Explore
-            </Button>
-
-            <Button
-              variant="ghost"
-              size="lg"
-              className="min-h-[44px] w-full justify-start rounded-xl text-base font-semibold"
-              render={<Link href="/admin" />}
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              <Shield className="size-5" data-icon="inline-start" />
-              Admin
             </Button>
 
             {user && (
