@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { BookOpen, Library, LogIn, LogOut, Menu, X } from "lucide-react";
+import { BookOpen, Library, LogIn, LogOut, Menu, Shield, X } from "lucide-react";
 import { useSession, signOut } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -62,6 +62,18 @@ export function Navbar() {
             >
               <Library className="size-5" data-icon="inline-start" />
               My Library
+            </Button>
+          )}
+
+          {user?.role === "admin" && (
+            <Button
+              variant="ghost"
+              size="lg"
+              className="min-h-[44px] min-w-[44px] rounded-xl text-base font-semibold"
+              render={<Link href="/admin" />}
+            >
+              <Shield className="size-5" data-icon="inline-start" />
+              Admin
             </Button>
           )}
 
@@ -138,6 +150,19 @@ export function Navbar() {
               >
                 <Library className="size-5" data-icon="inline-start" />
                 My Library
+              </Button>
+            )}
+
+            {user?.role === "admin" && (
+              <Button
+                variant="ghost"
+                size="lg"
+                className="min-h-[44px] w-full justify-start rounded-xl text-base font-semibold"
+                render={<Link href="/admin" />}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <Shield className="size-5" data-icon="inline-start" />
+                Admin
               </Button>
             )}
 

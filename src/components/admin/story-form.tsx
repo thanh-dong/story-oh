@@ -69,8 +69,21 @@ export function StoryForm({ initialData, onSave, saving }: StoryFormProps) {
     });
   };
 
+  const saveButton = (
+    <Button
+      onClick={handleSave}
+      disabled={saving}
+      className="w-full rounded-full py-5 text-base font-bold sm:w-auto sm:px-10"
+    >
+      {saving ? "Saving..." : "Save Story"}
+    </Button>
+  );
+
   return (
     <div className="space-y-8">
+      {/* Top save button */}
+      <div className="flex justify-end">{saveButton}</div>
+
       {/* Metadata section */}
       <div className="space-y-5 rounded-2xl bg-card p-5 storybook-shadow sm:p-6">
         <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
@@ -159,13 +172,8 @@ export function StoryForm({ initialData, onSave, saving }: StoryFormProps) {
         <TreeEditor value={storyTree} onChange={setStoryTree} />
       </div>
 
-      <Button
-        onClick={handleSave}
-        disabled={saving}
-        className="w-full rounded-full py-5 text-base font-bold sm:w-auto sm:px-10"
-      >
-        {saving ? "Saving..." : "Save Story"}
-      </Button>
+      {/* Bottom save button */}
+      {saveButton}
     </div>
   );
 }
