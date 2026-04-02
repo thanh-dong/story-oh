@@ -80,7 +80,6 @@ children:
   native_language  text, not null, default "en"
   learning_languages  jsonb, default ["en"]
   interests   jsonb, default []
-  difficulty  text, not null, default "auto"  ("auto" | "easy" | "medium" | "hard")
   daily_goal_minutes  integer, nullable
   created_at  timestamp
 ```

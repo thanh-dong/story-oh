@@ -39,7 +39,7 @@ export const children = pgTable("children", {
 export const childStories = pgTable("child_stories", {
   childId: uuid("child_id").notNull().references(() => children.id, { onDelete: "cascade" }),
   storyId: uuid("story_id").notNull().references(() => stories.id, { onDelete: "cascade" }),
-  assignedAt: timestamp("assigned_at").defaultNow(),
+  assignedAt: timestamp("assigned_at", { withTimezone: true, mode: "string" }).defaultNow(),
 }, (table) => ({
   pk: primaryKey({ columns: [table.childId, table.storyId] }),
 }));
