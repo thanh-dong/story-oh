@@ -230,3 +230,26 @@ body::before {
 .stagger-children > *:nth-child(7) { animation-delay: 360ms; }
 .stagger-children > *:nth-child(8) { animation-delay: 420ms; }
 .stagger-children > *:nth-child(9) { animation-delay: 480ms; }
+
+/* Kid mode — hide navbar and footer */
+:has(.kid-mode) > nav[class*="sticky"],
+:has(.kid-mode) > footer {
+  display: none !important;
+}
+
+:has(.kid-mode) > main > div[class*="max-w"] {
+  max-width: none;
+  padding: 0;
+}
+
+/* Kid mode — large touch targets for young children (age < 6) */
+.kid-young button,
+.kid-young a {
+  min-height: 64px;
+  min-width: 64px;
+}
+
+.kid-young p,
+.kid-young span {
+  font-size: 1.125rem;
+}
