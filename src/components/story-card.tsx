@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { getGradient, getStoryEmoji } from "@/lib/gradients";
