@@ -23,6 +23,7 @@ interface StoryFormProps {
     age_range: string;
     price: number;
     cover_image: string | null;
+    require_login: boolean;
     story_tree: StoryTree;
   };
   onSave: (data: {
@@ -31,6 +32,7 @@ interface StoryFormProps {
     age_range: string;
     price: number;
     cover_image: string | null;
+    require_login: boolean;
     story_tree: StoryTree;
   }) => void;
   saving: boolean;
@@ -48,6 +50,9 @@ export function StoryForm({ initialData, onSave, saving }: StoryFormProps) {
   const [coverImage, setCoverImage] = useState(
     initialData?.cover_image ?? ""
   );
+  const [requireLogin, setRequireLogin] = useState(
+    initialData?.require_login ?? false
+  );
   const [storyTree, setStoryTree] = useState<StoryTree>(
     initialData?.story_tree ?? defaultStoryTree
   );
@@ -59,6 +64,7 @@ export function StoryForm({ initialData, onSave, saving }: StoryFormProps) {
       age_range: ageRange,
       price,
       cover_image: coverImage || null,
+      require_login: requireLogin,
       story_tree: storyTree,
     });
   };
@@ -116,6 +122,17 @@ export function StoryForm({ initialData, onSave, saving }: StoryFormProps) {
           onChange={(e) => setCoverImage(e.target.value)}
           placeholder="https://..."
         />
+      </div>
+
+      <div className="flex items-center gap-2">
+        <input
+          id="require-login"
+          type="checkbox"
+          checked={requireLogin}
+          onChange={(e) => setRequireLogin(e.target.checked)}
+          className="size-4 rounded border-gray-300"
+        />
+        <Label htmlFor="require-login">Require login to read</Label>
       </div>
 
       <Separator />

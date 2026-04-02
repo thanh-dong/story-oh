@@ -20,6 +20,7 @@ export interface Story {
   cover_image: string | null;
   price: number;
   age_range: string;
+  require_login: boolean;
   story_tree: StoryTree;
   created_at: string;
 }

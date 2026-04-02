@@ -11,7 +11,7 @@ import type { Story } from "@/lib/types";
 interface StoryReaderProps {
   story: Story;
   initialProgress: { current_node: string; history: string[] };
-  userId: string;
+  userId: string | null;
 }
 
 const choiceColors = [
@@ -41,6 +41,7 @@ export function StoryReader({
 
   const saveProgress = useCallback(
     async (nodeId: string, newHistory: string[]) => {
+      if (!supabaseRef.current || !userId) return;
       await supabaseRef.current
         .from("user_stories")
         .update({

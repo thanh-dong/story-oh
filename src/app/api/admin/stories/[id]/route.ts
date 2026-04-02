@@ -24,6 +24,7 @@ export async function PUT(
       age_range: body.age_range,
       price: body.price ?? 0,
       cover_image: body.cover_image ?? null,
+      require_login: body.require_login ?? false,
       story_tree: body.story_tree,
     })
     .eq("id", id)

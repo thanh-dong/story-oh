@@ -6,6 +6,7 @@ create table public.stories (
   cover_image text,
   price numeric default 0,
   age_range text not null default '4-8',
+  require_login boolean not null default false,
   story_tree jsonb not null,
   created_at timestamptz default now()
 );
