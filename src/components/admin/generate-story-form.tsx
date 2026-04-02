@@ -19,6 +19,7 @@ interface GenerateStoryFormProps {
 
 export function GenerateStoryForm({ onGenerated }: GenerateStoryFormProps) {
   const [keyword, setKeyword] = useState("");
+  const [language, setLanguage] = useState<"en" | "vi" | "de">("en");
   const [audienceAge, setAudienceAge] = useState<"4-8" | "8-12">("4-8");
   const [isForChildren, setIsForChildren] = useState(true);
   const [expectedReadingTime, setExpectedReadingTime] = useState(5);
@@ -40,6 +41,7 @@ export function GenerateStoryForm({ onGenerated }: GenerateStoryFormProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           keyword: keyword.trim(),
+          language,
           audienceAge,
           isForChildren,
           expectedReadingTime,
@@ -80,6 +82,20 @@ export function GenerateStoryForm({ onGenerated }: GenerateStoryFormProps) {
           placeholder="e.g., dragons, space exploration, friendship"
           required
         />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="gen-language">Language</Label>
+        <Select value={language} onValueChange={(v: string | null) => setLanguage((v as "en" | "vi" | "de") ?? "en")}>
+          <SelectTrigger id="gen-language">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="en">English</SelectItem>
+            <SelectItem value="vi">Tiếng Việt</SelectItem>
+            <SelectItem value="de">Deutsch</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="space-y-2">

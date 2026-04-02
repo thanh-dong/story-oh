@@ -13,6 +13,9 @@ function validateRequest(body: unknown): { valid: true; data: GenerateStoryReque
   if (b.keyword.length > 200) {
     return { valid: false, error: "keyword must be 200 characters or less" };
   }
+  if (b.language !== "en" && b.language !== "vi" && b.language !== "de") {
+    return { valid: false, error: "language must be 'en', 'vi', or 'de'" };
+  }
   if (b.audienceAge !== "4-8" && b.audienceAge !== "8-12") {
     return { valid: false, error: "audienceAge must be '4-8' or '8-12'" };
   }
@@ -67,25 +70,42 @@ function validateStoryTree(tree: unknown): tree is StoryTree {
   return hasEnding;
 }
 
+const LANGUAGE_NAMES: Record<string, string> = {
+  en: "English",
+  vi: "Vietnamese",
+  de: "German",
+};
+
+const RESPONSE_SCHEMA = `{
+  "title": "string",
+  "summary": "string",
+  "age_range": "string",
+  "story_tree": {
+    "start": {
+      "text": "string",
+      "choices": [{ "label": "string", "next": "string (node_id)" }]
+    },
+    "<node_id>": {
+      "text": "string",
+      "choices": []
+    }
+  }
+}`;
+
 function buildPrompt(req: GenerateStoryRequest): { system: string; user: string } {
   const nodeCount = req.expectedReadingTime * 3;
+  const langName = LANGUAGE_NAMES[req.language] || "English";
 
   const system = `You are a children's story writer. You create interactive branching stories in JSON format.
+You MUST write all story content (title, summary, node text, choice labels) in ${langName}.
 
 Output ONLY valid JSON matching this exact schema:
-{
-  "title": "string - a compelling story title",
-  "summary": "string - a 1-2 sentence summary of the story",
-  "age_range": "${req.audienceAge}",
-  "story_tree": {
-    "start": { "text": "string - opening paragraph", "choices": [{ "label": "string - choice button text", "next": "node_id" }] },
-    "node_id": { "text": "string - story paragraph", "choices": [] }
-  }
-}
+${RESPONSE_SCHEMA}
 
 Rules:
+- ALL text content (title, summary, story text, choice labels) MUST be written in ${langName}
 - The story_tree MUST have a "start" node as the entry point
-- Node IDs must be lowercase with underscores (e.g., "explore_cave", "talk_to_wizard")
+- Node IDs must be lowercase ASCII with underscores (e.g., "explore_cave", "talk_to_wizard") regardless of language
 - Every choice "next" value must reference an existing node ID
 - Ending nodes have an empty choices array: "choices": []
 - There must be at least one ending node
@@ -95,7 +115,7 @@ Rules:
 - ${req.isForChildren ? "Content must be safe and appropriate for children" : "Content should be appropriate for the target age group"}
 - Difficulty "${req.difficulty}" means: ${req.difficulty === "easy" ? "simple vocabulary, short sentences, straightforward plot" : req.difficulty === "medium" ? "moderate vocabulary, varied sentence length, some complexity" : "rich vocabulary, complex sentences, nuanced plot"}`;
 
-  const user = `Create an interactive branching story about "${req.keyword}" for readers aged ${req.audienceAge}. Expected reading time: ${req.expectedReadingTime} minutes. Difficulty: ${req.difficulty}. Branches: ${req.minBranches}-${req.maxBranches}.`;
+  const user = `Create an interactive branching story in ${langName} about "${req.keyword}" for readers aged ${req.audienceAge}. Expected reading time: ${req.expectedReadingTime} minutes. Difficulty: ${req.difficulty}. Branches: ${req.minBranches}-${req.maxBranches}.`;
 
   return { system, user };
 }
