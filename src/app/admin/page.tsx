@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { Pencil, Plus, Trash2, Users } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -79,12 +79,20 @@ export default function AdminPage() {
             {stories.length} {stories.length === 1 ? "story" : "stories"} in your library
           </p>
         </div>
-        <Link href="/admin/stories/new">
-          <Button className="rounded-full font-bold">
-            <Plus className="size-4" data-icon="inline-start" />
-            New Story
-          </Button>
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link href="/admin/users">
+            <Button variant="outline" className="rounded-full font-bold">
+              <Users className="size-4" data-icon="inline-start" />
+              Users
+            </Button>
+          </Link>
+          <Link href="/admin/stories/new">
+            <Button className="rounded-full font-bold">
+              <Plus className="size-4" data-icon="inline-start" />
+              New Story
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* Stories grid */}
