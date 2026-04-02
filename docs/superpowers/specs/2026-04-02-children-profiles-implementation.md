@@ -23,14 +23,13 @@ export const children = pgTable("children", {
   id: uuid("id").defaultRandom().primaryKey(),
   parentId: text("parent_id").notNull().references(() => user.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
-  dateOfBirth: date("date_of_birth").notNull(),
+  dateOfBirth: date("date_of_birth").notNull(),  // date type (not timestamp) — intentional, DOB doesn't need time/timezone
   avatar: text("avatar").notNull(),  // emoji string like "🦁"
   nativeLanguage: text("native_language").notNull().default("en"),
   learningLanguages: jsonb("learning_languages").notNull().default(["en"]),
   interests: jsonb("interests").notNull().default([]),
-  difficulty: text("difficulty").notNull().default("auto"),  // "auto"|"easy"|"medium"|"hard"
   dailyGoalMinutes: integer("daily_goal_minutes"),
-  createdAt: timestamp("created_at").defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "string" }).notNull().defaultNow(),
 });
 ```
 
@@ -48,12 +47,19 @@ export const childStories = pgTable("child_stories", {
 
 ### Modify `userStories`
 
-Add column:
+Add column and change primary key:
 ```typescript
 childId: uuid("child_id").references(() => children.id),
 ```
 
-Allows same story to have separate progress rows per child. Existing rows (childId null) represent parent's own reading progress — no data migration needed.
+The current PK is `(user_id, story_id)`. To support per-child progress (same user, same story, different children), the PK must change to `(user_id, story_id, child_id)`. Since `child_id` is nullable (parent's own progress has no child), this requires a migration:
+
+1. Drop existing composite PK `(user_id, story_id)`
+2. Add `child_id` column (nullable, FK to `children`)
+3. Add a new surrogate `id uuid default random` as the primary key
+4. Add a unique constraint on `(user_id, story_id, child_id)` to prevent duplicates — with a coalesce to handle nulls: unique index on `(user_id, story_id, COALESCE(child_id, '00000000-0000-0000-0000-000000000000'))`
+
+Existing rows are unaffected — they get a new `id` PK and `child_id` stays null. No data migration beyond the schema change.
 
 ## API Routes
 
@@ -140,8 +146,8 @@ Add share icon button (Lucide `Share2` or `Users`). Only visible when user is lo
 
 ## Navigation Changes (`src/components/navbar.tsx`)
 
-- User has children → "Dashboard" primary, "My Library" secondary
-- User has no children → "My Library" as before
+- User has children → "Dashboard" link appears first in navbar, "My Library" stays as a separate link after it
+- User has no children → "My Library" as before (no "Dashboard" link shown)
 - Credits, admin, theme toggle unchanged
 
 ## Kid Mode Details
