@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  webSocketPort: 0,
+  allowedDevOrigins: ["*.trycloudflare.com"],
 };
 
 export default nextConfig;
