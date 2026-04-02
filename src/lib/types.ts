@@ -22,6 +22,7 @@ export interface Story {
   age_range: string;
   require_login: boolean;
   story_tree: StoryTree;
+  created_by: string | null;
   created_at: string;
 }
 
