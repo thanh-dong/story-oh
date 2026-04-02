@@ -1,21 +1,16 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { createClient } from "@/lib/supabase/server";
+import { db } from "@/lib/db";
+import { stories as storiesTable } from "@/lib/db/schema";
+import { desc } from "drizzle-orm";
 import { StoryCard } from "@/components/story-card";
-import type { Story } from "@/lib/types";
 
 export default async function Home() {
-  const supabase = await createClient();
-  let stories: Story[] = [];
-  if (supabase) {
-    const { data } = await supabase
-      .from("stories")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(3)
-      .returns<Story[]>();
-    if (data) stories = data;
-  }
+  const storyList = await db
+    .select()
+    .from(storiesTable)
+    .orderBy(desc(storiesTable.created_at))
+    .limit(3);
 
   return (
     <div className="space-y-16 pb-12 sm:space-y-20">
@@ -68,7 +63,7 @@ export default async function Home() {
       </section>
 
       {/* Featured Stories */}
-      {stories.length > 0 && (
+      {storyList.length > 0 && (
         <section className="space-y-6">
           <div className="flex items-end justify-between">
             <div>
@@ -85,7 +80,7 @@ export default async function Home() {
           </div>
 
           <div className="stagger-children grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {stories.map((story) => (
+            {storyList.map((story) => (
               <StoryCard key={story.id} story={story} />
             ))}
           </div>

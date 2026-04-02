@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { db } from "@/lib/db";
+import { stories as storiesTable } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
 import { getGradient, getStoryEmoji } from "@/lib/gradients";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import type { Story, StoryTree } from "@/lib/types";
+import type { StoryTree } from "@/lib/types";
 
 function countChoices(tree: StoryTree): number {
   let total = 0;
@@ -29,13 +31,10 @@ export default async function StoryDetailPage({
 }) {
   const { id } = await params;
 
-  const supabase = await createClient();
-  if (!supabase) notFound();
-  const { data: story } = await supabase
-    .from("stories")
-    .select("*")
-    .eq("id", id)
-    .single<Story>();
+  const [story] = await db
+    .select()
+    .from(storiesTable)
+    .where(eq(storiesTable.id, id));
 
   if (!story) notFound();
 

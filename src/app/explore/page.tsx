@@ -1,17 +1,9 @@
-import { createClient } from "@/lib/supabase/server";
+import { db } from "@/lib/db";
+import { stories as storiesTable } from "@/lib/db/schema";
 import { StoryCard } from "@/components/story-card";
-import type { Story } from "@/lib/types";
 
 export default async function ExplorePage() {
-  const supabase = await createClient();
-  const stories: Story[] = [];
-  if (supabase) {
-    const { data } = await supabase
-      .from("stories")
-      .select("*")
-      .returns<Story[]>();
-    if (data) stories.push(...data);
-  }
+  const storyList = await db.select().from(storiesTable);
 
   return (
     <div className="space-y-8">
@@ -20,13 +12,13 @@ export default async function ExplorePage() {
           Explore Stories
         </h1>
         <p className="mt-2 text-muted-foreground">
-          {stories.length} {stories.length === 1 ? "adventure" : "adventures"} waiting for you
+          {storyList.length} {storyList.length === 1 ? "adventure" : "adventures"} waiting for you
         </p>
       </div>
 
-      {stories.length > 0 ? (
+      {storyList.length > 0 ? (
         <div className="stagger-children grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {stories.map((story) => (
+          {storyList.map((story) => (
             <StoryCard key={story.id} story={story} />
           ))}
         </div>
