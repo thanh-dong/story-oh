@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, BookOpen, RotateCcw } from "lucide-react";
+import { ArrowLeft, BookOpen, RotateCcw, Volume2, VolumeX, Loader2 } from "lucide-react";
 import { getGradient, getStoryEmoji } from "@/lib/gradients";
 import { Button } from "@/components/ui/button";
 import type { Story } from "@/lib/types";
@@ -46,6 +46,67 @@ export function StoryReader({
     },
     [story.id, userId]
   );
+
+  // ── TTS ──
+  const [ttsState, setTtsState] = useState<"idle" | "loading" | "playing">("idle");
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  function stopAudio() {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.src = "";
+      audioRef.current = null;
+    }
+    setTtsState("idle");
+  }
+
+  async function handleReadAloud(text: string) {
+    if (ttsState === "playing") {
+      stopAudio();
+      return;
+    }
+
+    setTtsState("loading");
+    try {
+      const res = await fetch("/api/tts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+      });
+
+      if (!res.ok) {
+        setTtsState("idle");
+        return;
+      }
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+      audioRef.current = audio;
+
+      audio.onended = () => {
+        URL.revokeObjectURL(url);
+        setTtsState("idle");
+        audioRef.current = null;
+      };
+
+      audio.onerror = () => {
+        URL.revokeObjectURL(url);
+        setTtsState("idle");
+        audioRef.current = null;
+      };
+
+      await audio.play();
+      setTtsState("playing");
+    } catch {
+      setTtsState("idle");
+    }
+  }
+
+  // Stop audio on node change
+  useEffect(() => {
+    return () => stopAudio();
+  }, [currentNode]);
 
   function handleChoice(nextNodeId: string) {
     setFadeState("out");
@@ -136,10 +197,24 @@ export function StoryReader({
               </h2>
             </div>
 
-            <div className="rounded-2xl bg-parchment p-6 sm:p-8">
+            <div className="relative rounded-2xl bg-parchment p-6 sm:p-8">
               <p className="text-lg leading-relaxed sm:text-xl">
                 {node.text}
               </p>
+              <button
+                onClick={() => handleReadAloud(node.text)}
+                disabled={ttsState === "loading"}
+                className="absolute right-3 top-3 flex size-9 items-center justify-center rounded-full bg-card text-muted-foreground transition-colors hover:text-primary storybook-shadow"
+                aria-label={ttsState === "playing" ? "Stop reading" : "Read aloud"}
+              >
+                {ttsState === "loading" ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : ttsState === "playing" ? (
+                  <VolumeX className="size-4" />
+                ) : (
+                  <Volume2 className="size-4" />
+                )}
+              </button>
             </div>
 
             <p className="text-sm font-medium text-muted-foreground">
@@ -173,10 +248,24 @@ export function StoryReader({
         ) : (
           <div className="space-y-8">
             {/* Story text */}
-            <div className="rounded-2xl bg-parchment p-6 storybook-shadow sm:p-8">
+            <div className="relative rounded-2xl bg-parchment p-6 storybook-shadow sm:p-8">
               <p className="text-lg leading-[1.8] sm:text-xl sm:leading-[1.8]">
                 {node.text}
               </p>
+              <button
+                onClick={() => handleReadAloud(node.text)}
+                disabled={ttsState === "loading"}
+                className="absolute right-3 top-3 flex size-9 items-center justify-center rounded-full bg-card text-muted-foreground transition-colors hover:text-primary storybook-shadow"
+                aria-label={ttsState === "playing" ? "Stop reading" : "Read aloud"}
+              >
+                {ttsState === "loading" ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : ttsState === "playing" ? (
+                  <VolumeX className="size-4" />
+                ) : (
+                  <Volume2 className="size-4" />
+                )}
+              </button>
             </div>
 
             {/* Choices */}
