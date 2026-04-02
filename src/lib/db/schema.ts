@@ -7,6 +7,7 @@ import {
   boolean,
   jsonb,
   timestamp,
+  date,
   primaryKey,
   index,
 } from "drizzle-orm/pg-core";
@@ -75,19 +76,63 @@ export const stories = pgTable("stories", {
   created_at: timestamp("created_at", { withTimezone: true, mode: "string" }).notNull().defaultNow(),
 });
 
+// ─── Children & Family Tables ───
+
+export const children = pgTable("children", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  parentId: text("parent_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  dateOfBirth: date("date_of_birth").notNull(),
+  avatar: text("avatar").notNull(),
+  nativeLanguage: text("native_language").notNull().default("en"),
+  learningLanguages: jsonb("learning_languages")
+    .$type<string[]>()
+    .notNull()
+    .default(["en"]),
+  interests: jsonb("interests").$type<string[]>().notNull().default([]),
+  dailyGoalMinutes: integer("daily_goal_minutes"),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
+    .notNull()
+    .defaultNow(),
+});
+
+export const childStories = pgTable(
+  "child_stories",
+  {
+    childId: uuid("child_id")
+      .notNull()
+      .references(() => children.id, { onDelete: "cascade" }),
+    storyId: uuid("story_id")
+      .notNull()
+      .references(() => stories.id, { onDelete: "cascade" }),
+    assignedAt: timestamp("assigned_at", { withTimezone: true, mode: "string" })
+      .defaultNow(),
+  },
+  (table) => [primaryKey({ columns: [table.childId, table.storyId] })]
+);
+
 export const userStories = pgTable(
   "user_stories",
   {
-    user_id: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+    id: uuid("id").defaultRandom().primaryKey(),
+    user_id: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
     story_id: uuid("story_id")
       .notNull()
       .references(() => stories.id, { onDelete: "cascade" }),
+    child_id: uuid("child_id").references(() => children.id),
     progress: jsonb("progress")
       .$type<{ current_node: string; history: string[] }>()
       .default({ current_node: "start", history: ["start"] }),
     created_at: timestamp("created_at", { withTimezone: true, mode: "string" }).defaultNow(),
   },
-  (table) => [primaryKey({ columns: [table.user_id, table.story_id] })]
+  (table) => [
+    index("user_stories_user_story_idx").on(table.user_id, table.story_id),
+    index("user_stories_user_story_child_idx").on(table.user_id, table.story_id, table.child_id),
+  ]
 );
 
 export const creditTransactions = pgTable(
