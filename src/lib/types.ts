@@ -33,3 +33,20 @@ export interface UserStory {
   };
   story?: Story;
 }
+
+export interface GenerateStoryRequest {
+  keyword: string;
+  audienceAge: "4-8" | "8-12";
+  isForChildren: boolean;
+  expectedReadingTime: number;
+  difficulty: "easy" | "medium" | "hard";
+  minBranches: number;
+  maxBranches: number;
+}
+
+export interface GenerateStoryResponse {
+  title: string;
+  summary: string;
+  age_range: string;
+  story_tree: StoryTree;
+}
