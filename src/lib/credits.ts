@@ -13,11 +13,17 @@ export function estimateCost(params: {
 export function calculateActualCost(
   estimatedCost: number,
   completionTokens: number,
-  maxTokens: number = 4096
 ): number {
-  const ratio = completionTokens / maxTokens;
-  const raw = Math.round(estimatedCost * ratio);
-  const min = 5;
-  const max = Math.round(estimatedCost * 1.2);
-  return Math.max(min, Math.min(max, raw));
+  // Token adjustment: the estimate is the baseline. Actual cost adjusts ±20%
+  // based on how many tokens the LLM actually used vs a typical generation.
+  //
+  // Typical generation: ~1200 completion tokens.
+  // - 1200 tokens → factor 1.0 (pay the estimate)
+  // - 600 tokens → factor 0.8 (20% discount)
+  // - 1800+ tokens → factor 1.2 (20% surcharge, capped)
+  const typicalTokens = 1200;
+  const deviation = (completionTokens - typicalTokens) / typicalTokens; // -1 to +inf
+  const factor = 1 + Math.max(-0.2, Math.min(0.2, deviation * 0.4));
+  const raw = Math.round(estimatedCost * factor);
+  return Math.max(5, raw);
 }
