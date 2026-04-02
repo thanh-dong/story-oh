@@ -1,12 +1,22 @@
 import { NextResponse } from "next/server";
+import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { stories } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
+
+async function requireAdmin() {
+  const session = await getSession();
+  if (!session || session.user.role !== "admin") return null;
+  return session;
+}
 
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  if (!(await requireAdmin())) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   const { id } = await params;
   const body = await request.json();
 
@@ -32,6 +42,9 @@ export async function DELETE(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  if (!(await requireAdmin())) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   const { id } = await params;
   await db.delete(stories).where(eq(stories.id, id));
   return NextResponse.json({ success: true });
