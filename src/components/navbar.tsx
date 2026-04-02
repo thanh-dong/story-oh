@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { BookOpen, Library, LogIn, LogOut, Menu, Shield, X } from "lucide-react";
+import { BookOpen, LayoutDashboard, Library, LogIn, LogOut, Menu, Shield, X } from "lucide-react";
 import { useSession, signOut } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -11,9 +11,28 @@ import { ThemeToggle } from "@/components/theme-toggle";
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [credits, setCredits] = useState<number | null>(null);
+  const [hasChildren, setHasChildren] = useState(false);
   const { data: session } = useSession();
   const user = session?.user ?? null;
   const router = useRouter();
+
+  useEffect(() => {
+    if (!user) {
+      setHasChildren(false);
+      return;
+    }
+
+    fetch("/api/children")
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setHasChildren(true);
+        } else {
+          setHasChildren(false);
+        }
+      })
+      .catch(() => setHasChildren(false));
+  }, [user]);
 
   useEffect(() => {
     if (!user || user.role === "admin") return;
@@ -70,6 +89,18 @@ export function Navbar() {
             <BookOpen className="size-5" data-icon="inline-start" />
             Explore
           </Button>
+
+          {user && hasChildren && (
+            <Button
+              variant="ghost"
+              size="lg"
+              className="min-h-[44px] min-w-[44px] rounded-xl text-base font-semibold"
+              render={<Link href="/dashboard" />}
+            >
+              <LayoutDashboard className="size-5" data-icon="inline-start" />
+              Dashboard
+            </Button>
+          )}
 
           {user && (
             <Button
@@ -162,6 +193,19 @@ export function Navbar() {
               <BookOpen className="size-5" data-icon="inline-start" />
               Explore
             </Button>
+
+            {user && hasChildren && (
+              <Button
+                variant="ghost"
+                size="lg"
+                className="min-h-[44px] w-full justify-start rounded-xl text-base font-semibold"
+                render={<Link href="/dashboard" />}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <LayoutDashboard className="size-5" data-icon="inline-start" />
+                Dashboard
+              </Button>
+            )}
 
             {user && (
               <Button
