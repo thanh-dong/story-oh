@@ -1,0 +1,81 @@
+import { NextResponse } from "next/server";
+import { getSession } from "@/lib/auth";
+import { db } from "@/lib/db";
+import { childStories, stories, userStories } from "@/lib/db/schema";
+import { and, eq } from "drizzle-orm";
+import { verifyChildOwnership } from "@/lib/children";
+
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const session = await getSession();
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { id } = await params;
+  const child = await verifyChildOwnership(id, session.user.id);
+  if (!child) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  const rows = await db
+    .select()
+    .from(childStories)
+    .innerJoin(stories, eq(childStories.storyId, stories.id))
+    .leftJoin(
+      userStories,
+      and(
+        eq(userStories.story_id, childStories.storyId),
+        eq(userStories.user_id, session.user.id),
+        eq(userStories.child_id, id)
+      )
+    )
+    .where(eq(childStories.childId, id));
+
+  const result = rows.map((row) => ({
+    ...row.stories,
+    assignedAt: row.child_stories.assignedAt,
+    progress: row.user_stories?.progress ?? null,
+  }));
+
+  return NextResponse.json(result);
+}
+
+export async function POST(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const session = await getSession();
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { id } = await params;
+  const child = await verifyChildOwnership(id, session.user.id);
+  if (!child) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  const body = await request.json();
+  if (!body.storyId) {
+    return NextResponse.json({ error: "storyId is required" }, { status: 400 });
+  }
+
+  const [story] = await db
+    .select()
+    .from(stories)
+    .where(eq(stories.id, body.storyId));
+
+  if (!story) {
+    return NextResponse.json({ error: "Story not found" }, { status: 404 });
+  }
+
+  await db
+    .insert(childStories)
+    .values({ childId: id, storyId: body.storyId })
+    .onConflictDoNothing();
+
+  return NextResponse.json({ ok: true }, { status: 201 });
+}
