@@ -1,9 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, BookOpen, RotateCcw } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
 import { getGradient, getStoryEmoji } from "@/lib/gradients";
 import { Button } from "@/components/ui/button";
 import type { Story } from "@/lib/types";
@@ -30,7 +29,6 @@ export function StoryReader({
   const [currentNode, setCurrentNode] = useState(initialProgress.current_node);
   const [history, setHistory] = useState<string[]>(initialProgress.history);
   const [fadeState, setFadeState] = useState<"in" | "out">("in");
-  const supabaseRef = useRef(createClient());
 
   const node = story.story_tree[currentNode];
   const isEnding = !node?.choices || node.choices.length === 0;
@@ -39,14 +37,12 @@ export function StoryReader({
 
   const saveProgress = useCallback(
     async (nodeId: string, newHistory: string[]) => {
-      if (!supabaseRef.current || !userId) return;
-      await supabaseRef.current
-        .from("user_stories")
-        .update({
-          progress: { current_node: nodeId, history: newHistory },
-        })
-        .eq("story_id", story.id)
-        .eq("user_id", userId);
+      if (!userId) return;
+      fetch(`/api/stories/${story.id}/progress`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ current_node: nodeId, history: newHistory }),
+      }).catch(() => {});
     },
     [story.id, userId]
   );

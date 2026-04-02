@@ -1,37 +1,28 @@
-import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { getSession } from "@/lib/auth";
+import { db } from "@/lib/db";
+import { stories as storiesTable, userStories } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { getGradient, getStoryEmoji } from "@/lib/gradients";
 import type { Story } from "@/lib/types";
 
-interface UserStoryRow {
-  user_id: string;
-  story_id: string;
-  progress: {
-    current_node: string;
-    history: string[];
-  };
-  story: Story;
-}
-
 export default async function LibraryPage() {
-  const supabase = await createClient();
-  if (!supabase) redirect("/login");
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const session = await getSession();
+  if (!session) redirect("/login");
 
-  if (!user) redirect("/login");
+  const rows = await db
+    .select()
+    .from(userStories)
+    .innerJoin(storiesTable, eq(userStories.story_id, storiesTable.id))
+    .where(eq(userStories.user_id, session.user.id));
 
-  const { data: userStories } = await supabase
-    .from("user_stories")
-    .select("*, story:stories(*)")
-    .eq("user_id", user.id)
-    .returns<UserStoryRow[]>();
-
-  const stories = userStories ?? [];
+  const userStoryList = rows.map((row) => ({
+    ...row.user_stories,
+    story: row.stories as Story,
+  }));
 
   return (
     <div className="space-y-8">
@@ -40,20 +31,20 @@ export default async function LibraryPage() {
           My Library
         </h1>
         <p className="mt-2 text-muted-foreground">
-          {stories.length > 0
-            ? `${stories.length} ${stories.length === 1 ? "adventure" : "adventures"} in your collection`
+          {userStoryList.length > 0
+            ? `${userStoryList.length} ${userStoryList.length === 1 ? "adventure" : "adventures"} in your collection`
             : "Your adventures await"}
         </p>
       </div>
 
-      {stories.length > 0 ? (
+      {userStoryList.length > 0 ? (
         <div className="stagger-children grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {stories.map((us) => {
+          {userStoryList.map((us) => {
             const story = us.story;
             const gradient = getGradient(story.title);
             const emoji = getStoryEmoji(story.title);
-            const choicesMade = us.progress.history.length;
-            const currentNode = story.story_tree?.[us.progress.current_node];
+            const choicesMade = us.progress?.history?.length ?? 0;
+            const currentNode = story.story_tree?.[us.progress?.current_node ?? ""];
             const isAtEnding = currentNode && currentNode.choices.length === 0;
 
             return (

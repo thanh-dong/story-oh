@@ -1,5 +1,8 @@
-import { createClient } from "@/lib/supabase/server";
 import { redirect, notFound } from "next/navigation";
+import { getSession } from "@/lib/auth";
+import { db } from "@/lib/db";
+import { stories as storiesTable, userStories } from "@/lib/db/schema";
+import { and, eq } from "drizzle-orm";
 import { StoryReader } from "@/components/story-reader";
 import type { Story } from "@/lib/types";
 
@@ -9,58 +12,47 @@ export default async function ReadPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const supabase = await createClient();
 
-  // Fetch story first to check require_login
-  let story: Story | null = null;
-  if (supabase) {
-    const { data } = await supabase
-      .from("stories")
-      .select("*")
-      .eq("id", id)
-      .single<Story>();
-    story = data;
-  }
+  const [story] = await db
+    .select()
+    .from(storiesTable)
+    .where(eq(storiesTable.id, id));
 
   if (!story) notFound();
 
-  // Get user if available
-  const user = supabase
-    ? (await supabase.auth.getUser()).data.user
-    : null;
+  const session = await getSession();
 
-  // Only require login if story has require_login set
-  if (story.require_login && !user) {
+  if (story.require_login && !session) {
     redirect(`/login?next=/story/${id}/read`);
   }
 
-  // If logged in, manage progress
   let progress = { current_node: "start", history: ["start"] };
-  if (user && supabase) {
-    let { data: userStory } = await supabase
-      .from("user_stories")
-      .select("*")
-      .eq("user_id", user.id)
-      .eq("story_id", id)
-      .single();
+  if (session) {
+    const [existing] = await db
+      .select()
+      .from(userStories)
+      .where(
+        and(
+          eq(userStories.user_id, session.user.id),
+          eq(userStories.story_id, id)
+        )
+      );
 
-    if (!userStory) {
-      const { data: newEntry } = await supabase
-        .from("user_stories")
-        .insert({ user_id: user.id, story_id: id })
-        .select()
-        .single();
-      userStory = newEntry;
+    if (existing) {
+      progress = existing.progress ?? progress;
+    } else {
+      await db.insert(userStories).values({
+        user_id: session.user.id,
+        story_id: id,
+      });
     }
-
-    progress = userStory?.progress ?? progress;
   }
 
   return (
     <StoryReader
-      story={story}
+      story={story as Story}
       initialProgress={progress}
-      userId={user?.id ?? null}
+      userId={session?.user.id ?? null}
     />
   );
 }

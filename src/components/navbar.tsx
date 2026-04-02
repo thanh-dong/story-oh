@@ -1,56 +1,28 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import type { SupabaseClient, User } from "@supabase/supabase-js";
 import { BookOpen, Library, LogIn, LogOut, Menu, X } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { useSession, signOut } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 export function Navbar() {
-  const [user, setUser] = useState<User | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { data: session } = useSession();
+  const user = session?.user ?? null;
   const router = useRouter();
-  const supabaseRef = useRef<SupabaseClient | null>(null);
-
-  // Lazily create the Supabase client (only in the browser)
-  function getSupabase() {
-    if (!supabaseRef.current) {
-      supabaseRef.current = createClient();
-    }
-    return supabaseRef.current;
-  }
-
-  useEffect(() => {
-    const supabase = getSupabase();
-    if (!supabase) return;
-
-    // Get the initial session
-    supabase.auth.getUser().then(({ data: { user: u } }) => {
-      setUser(u);
-    });
-
-    // Listen for auth state changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const handleLogout = async () => {
-    const supabase = getSupabase();
-    if (!supabase) return;
-    await supabase.auth.signOut();
-    setMobileMenuOpen(false);
-    router.refresh();
+    await signOut({
+      fetchOptions: {
+        onSuccess: () => {
+          setMobileMenuOpen(false);
+          router.refresh();
+        },
+      },
+    });
   };
 
   return (
