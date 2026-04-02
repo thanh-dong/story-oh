@@ -48,8 +48,8 @@ export default async function KidModeReaderPage({
       initialProgress={initialProgress}
       userId={session.user.id}
       childId={childId}
-      backHref={`/dashboard/${childId}`}
-      moreStoriesHref={`/dashboard/${childId}`}
+      backHref={`/dashboard/${childId}/read`}
+      moreStoriesHref={`/dashboard/${childId}/read`}
     />
   );
 }

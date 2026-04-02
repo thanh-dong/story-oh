@@ -9,14 +9,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getGradient, getStoryEmoji } from "@/lib/gradients";
 import type { Story, StoryTree } from "@/lib/types";
-import { Pencil } from "lucide-react";
+import { ArrowLeft, BookOpen, Pencil, Play, Trash2 } from "lucide-react";
 
 function isAtEnding(storyTree: StoryTree, currentNode: string): boolean {
   const node = storyTree[currentNode];
   return node ? node.choices.length === 0 : false;
 }
 
-export default async function ChildHubPage({
+export default async function ChildManagePage({
   params,
 }: {
   params: Promise<{ childId: string }>;
@@ -50,152 +50,163 @@ export default async function ChildHubPage({
     progress: row.user_stories?.progress ?? null,
   }));
 
-  const notStarted = assignedStories.filter((s) => !s.progress);
-  const inProgress = assignedStories.filter(
-    (s) => s.progress && !isAtEnding(s.story.story_tree, s.progress.current_node)
-  );
-  const completed = assignedStories.filter(
+  const completedCount = assignedStories.filter(
     (s) => s.progress && isAtEnding(s.story.story_tree, s.progress.current_node)
-  );
+  ).length;
+  const inProgressCount = assignedStories.filter(
+    (s) => s.progress && !isAtEnding(s.story.story_tree, s.progress.current_node)
+  ).length;
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-8">
       {/* Header */}
-      <div className="flex items-center justify-between animate-fade-up">
-        <div className="flex items-center gap-4">
-          <span className="text-5xl">{child.avatar}</span>
-          <div>
-            <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
-              Hi {child.name}!
-            </h1>
-            <Badge variant="secondary" className="mt-1">Age {age}</Badge>
+      <div className="animate-fade-up">
+        <div className="mb-4">
+          <Button
+            variant="ghost"
+            size="lg"
+            className="min-h-[44px] rounded-xl"
+            render={<Link href="/dashboard" />}
+          >
+            <ArrowLeft className="size-5" data-icon="inline-start" />
+            Back to Dashboard
+          </Button>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <span className="text-5xl">{child.avatar}</span>
+            <div>
+              <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
+                {child.name}
+              </h1>
+              <div className="mt-1 flex items-center gap-2">
+                <Badge variant="secondary">Age {age}</Badge>
+                <Badge variant="secondary">{child.nativeLanguage.toUpperCase()}</Badge>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="lg"
+              className="min-h-[44px] rounded-xl"
+              render={<Link href={`/dashboard/${childId}/edit`} />}
+            >
+              <Pencil className="size-4" data-icon="inline-start" />
+              Edit Profile
+            </Button>
           </div>
         </div>
-        <Button
-          variant="ghost"
-          size="lg"
-          className="min-h-[44px] rounded-xl"
-          render={<Link href={`/dashboard/${childId}/edit`} />}
-        >
-          <Pencil className="size-4" data-icon="inline-start" />
-          Edit
-        </Button>
       </div>
 
-      {assignedStories.length === 0 ? (
-        <div className="flex flex-col items-center gap-4 rounded-2xl bg-parchment py-16 text-center">
-          <span className="text-6xl" aria-hidden="true">&#x1F4DA;</span>
-          <p className="text-xl font-bold">No stories yet!</p>
-          <p className="text-muted-foreground">
-            Ask your parent to pick some stories for you.
-          </p>
+      {/* Start Reader Mode CTA */}
+      <div className="rounded-2xl bg-gradient-to-r from-purple-500 to-indigo-500 p-6 text-white storybook-shadow sm:p-8">
+        <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-xl font-bold sm:text-2xl">Reader Mode</h2>
+            <p className="mt-1 text-white/80">
+              Hand the device to {child.name} — simplified UI, no navigation distractions
+            </p>
+          </div>
+          <Link href={`/dashboard/${childId}/read`}>
+            <Button
+              size="lg"
+              className="min-h-[56px] rounded-full bg-white px-8 text-lg font-bold text-purple-600 hover:bg-white/90"
+            >
+              <Play className="size-5" data-icon="inline-start" />
+              Start Reading
+            </Button>
+          </Link>
         </div>
-      ) : (
-        <>
-          {/* In Progress */}
-          {inProgress.length > 0 && (
-            <section className="space-y-4">
-              <h2 className="text-xl font-bold">Continue Reading</h2>
-              <div className="grid gap-4 sm:grid-cols-2">
-                {inProgress.map(({ story, progress }) => {
-                  const gradient = getGradient(story.title);
-                  const emoji = getStoryEmoji(story.title);
-                  return (
-                    <Link
-                      key={story.id}
-                      href={`/dashboard/${childId}/read/${story.id}`}
-                      className="group block"
-                    >
-                      <article className="relative overflow-hidden rounded-2xl bg-card storybook-shadow transition-all duration-300 hover:-translate-y-1 hover:storybook-shadow-lg">
-                        <div className={`flex h-28 items-center justify-center bg-gradient-to-br ${gradient}`}>
-                          <span className="text-4xl drop-shadow-md transition-transform duration-300 group-hover:scale-110">{emoji}</span>
-                        </div>
-                        <div className="p-4">
-                          <h3 className="font-bold">{story.title}</h3>
-                          <p className="mt-1 text-sm text-muted-foreground">
-                            {progress!.history.length - 1} choices made
-                          </p>
-                          <span className="mt-2 inline-block rounded-full bg-primary px-4 py-1.5 text-sm font-bold text-primary-foreground">
-                            Continue
-                          </span>
-                        </div>
-                      </article>
-                    </Link>
-                  );
-                })}
-              </div>
-            </section>
-          )}
+      </div>
 
-          {/* Not Started */}
-          {notStarted.length > 0 && (
-            <section className="space-y-4">
-              <h2 className="text-xl font-bold">Your Stories</h2>
-              <div className="grid gap-4 sm:grid-cols-2">
-                {notStarted.map(({ story }) => {
-                  const gradient = getGradient(story.title);
-                  const emoji = getStoryEmoji(story.title);
-                  return (
-                    <Link
-                      key={story.id}
-                      href={`/dashboard/${childId}/read/${story.id}`}
-                      className="group block"
-                    >
-                      <article className="overflow-hidden rounded-2xl bg-card storybook-shadow transition-all duration-300 hover:-translate-y-1 hover:storybook-shadow-lg">
-                        <div className={`flex h-28 items-center justify-center bg-gradient-to-br ${gradient}`}>
-                          <span className="text-4xl drop-shadow-md transition-transform duration-300 group-hover:scale-110">{emoji}</span>
-                        </div>
-                        <div className="p-4">
-                          <h3 className="font-bold">{story.title}</h3>
-                          <p className="mt-1 text-sm text-muted-foreground">{story.summary}</p>
-                          <span className="mt-2 inline-block rounded-full bg-primary px-4 py-1.5 text-sm font-bold text-primary-foreground">
-                            Start Reading
-                          </span>
-                        </div>
-                      </article>
-                    </Link>
-                  );
-                })}
-              </div>
-            </section>
-          )}
+      {/* Stats */}
+      <div className="grid grid-cols-3 gap-4">
+        <div className="rounded-xl bg-card p-4 text-center storybook-shadow">
+          <p className="text-2xl font-bold">{assignedStories.length}</p>
+          <p className="text-sm text-muted-foreground">Assigned</p>
+        </div>
+        <div className="rounded-xl bg-card p-4 text-center storybook-shadow">
+          <p className="text-2xl font-bold">{inProgressCount}</p>
+          <p className="text-sm text-muted-foreground">In Progress</p>
+        </div>
+        <div className="rounded-xl bg-card p-4 text-center storybook-shadow">
+          <p className="text-2xl font-bold">{completedCount}</p>
+          <p className="text-sm text-muted-foreground">Completed</p>
+        </div>
+      </div>
 
-          {/* Completed */}
-          {completed.length > 0 && (
-            <section className="space-y-4">
-              <h2 className="text-xl font-bold">Completed &#x2713;</h2>
-              <div className="grid gap-4 sm:grid-cols-2">
-                {completed.map(({ story }) => {
-                  const gradient = getGradient(story.title);
-                  const emoji = getStoryEmoji(story.title);
-                  return (
-                    <Link
-                      key={story.id}
-                      href={`/dashboard/${childId}/read/${story.id}`}
-                      className="group block"
-                    >
-                      <article className="overflow-hidden rounded-2xl bg-card storybook-shadow transition-all duration-300 hover:-translate-y-1 hover:storybook-shadow-lg">
-                        <div className={`relative flex h-28 items-center justify-center bg-gradient-to-br ${gradient}`}>
-                          <span className="text-4xl drop-shadow-md">{emoji}</span>
-                          <Badge className="absolute right-3 top-3 border-0 bg-white/25 text-white backdrop-blur-sm text-xs font-bold">
-                            &#x2713; Done
-                          </Badge>
-                        </div>
-                        <div className="p-4">
-                          <h3 className="font-bold">{story.title}</h3>
-                          <span className="mt-2 inline-block rounded-full bg-muted px-4 py-1.5 text-sm font-bold text-muted-foreground">
-                            Read Again
-                          </span>
-                        </div>
-                      </article>
-                    </Link>
-                  );
-                })}
-              </div>
-            </section>
-          )}
-        </>
-      )}
+      {/* Assigned Stories */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-bold">Assigned Stories</h2>
+          <Button
+            variant="outline"
+            className="rounded-xl"
+            render={<Link href="/explore" />}
+          >
+            <BookOpen className="size-4" data-icon="inline-start" />
+            Find Stories
+          </Button>
+        </div>
+
+        {assignedStories.length === 0 ? (
+          <div className="flex flex-col items-center gap-4 rounded-2xl bg-parchment py-16 text-center">
+            <span className="text-6xl" aria-hidden="true">&#x1F4DA;</span>
+            <p className="text-lg font-bold">No stories assigned yet</p>
+            <p className="text-muted-foreground">
+              Go to Explore to find stories and share them with {child.name}
+            </p>
+            <Link href="/explore">
+              <Button className="rounded-full px-6 font-bold">
+                <BookOpen className="size-4" data-icon="inline-start" />
+                Explore Stories
+              </Button>
+            </Link>
+          </div>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {assignedStories.map(({ story, progress }) => {
+              const gradient = getGradient(story.title);
+              const emoji = getStoryEmoji(story.title);
+              const isCompleted = progress && isAtEnding(story.story_tree, progress.current_node);
+              const isInProgress = progress && !isCompleted;
+
+              return (
+                <article
+                  key={story.id}
+                  className="overflow-hidden rounded-2xl bg-card storybook-shadow"
+                >
+                  <div className={`relative flex h-28 items-center justify-center bg-gradient-to-br ${gradient}`}>
+                    <span className="text-4xl drop-shadow-md">{emoji}</span>
+                    {isCompleted && (
+                      <Badge className="absolute right-3 top-3 border-0 bg-white/25 text-white backdrop-blur-sm text-xs font-bold">
+                        &#x2713; Done
+                      </Badge>
+                    )}
+                    {isInProgress && (
+                      <Badge className="absolute right-3 top-3 border-0 bg-white/25 text-white backdrop-blur-sm text-xs font-bold">
+                        Reading
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="p-4">
+                    <h3 className="font-bold">{story.title}</h3>
+                    <p className="mt-1 line-clamp-1 text-sm text-muted-foreground">{story.summary}</p>
+                    {isInProgress && (
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {progress!.history.length - 1} choices made
+                      </p>
+                    )}
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        )}
+      </section>
     </div>
   );
 }
