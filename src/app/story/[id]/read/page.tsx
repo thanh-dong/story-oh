@@ -22,6 +22,11 @@ export default async function ReadPage({
 
   const session = await getSession();
 
+  // Private stories only accessible by their creator
+  if (story.created_by && (!session || session.user.id !== story.created_by)) {
+    notFound();
+  }
+
   if (story.require_login && !session) {
     redirect(`/login?next=/story/${id}/read`);
   }

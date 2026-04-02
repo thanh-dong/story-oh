@@ -1,9 +1,10 @@
 import { db } from "@/lib/db";
 import { stories as storiesTable } from "@/lib/db/schema";
+import { isNull } from "drizzle-orm";
 import { StoryCard } from "@/components/story-card";
 
 export default async function ExplorePage() {
-  const storyList = await db.select().from(storiesTable);
+  const storyList = await db.select().from(storiesTable).where(isNull(storiesTable.created_by));
 
   return (
     <div className="space-y-8">

@@ -2,13 +2,14 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { db } from "@/lib/db";
 import { stories as storiesTable } from "@/lib/db/schema";
-import { desc } from "drizzle-orm";
+import { desc, isNull } from "drizzle-orm";
 import { StoryCard } from "@/components/story-card";
 
 export default async function Home() {
   const storyList = await db
     .select()
     .from(storiesTable)
+    .where(isNull(storiesTable.created_by))
     .orderBy(desc(storiesTable.created_at))
     .limit(3);
 

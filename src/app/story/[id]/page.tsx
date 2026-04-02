@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { stories as storiesTable } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
@@ -37,6 +38,14 @@ export default async function StoryDetailPage({
     .where(eq(storiesTable.id, id));
 
   if (!story) notFound();
+
+  // Private stories only accessible by their creator
+  if (story.created_by) {
+    const session = await getSession();
+    if (!session || session.user.id !== story.created_by) {
+      notFound();
+    }
+  }
 
   const gradient = getGradient(story.title);
   const emoji = getStoryEmoji(story.title);
