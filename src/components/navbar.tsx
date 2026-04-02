@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { BookOpen, Library, LogIn, LogOut, Menu, Shield, X } from "lucide-react";
 import { useSession, signOut } from "@/lib/auth-client";
@@ -10,9 +10,19 @@ import { ThemeToggle } from "@/components/theme-toggle";
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [credits, setCredits] = useState<number | null>(null);
   const { data: session } = useSession();
   const user = session?.user ?? null;
   const router = useRouter();
+
+  useEffect(() => {
+    if (user && user.role !== "admin") {
+      fetch("/api/me/credits")
+        .then((r) => r.json())
+        .then((d) => setCredits(d.credits))
+        .catch(() => {});
+    }
+  }, [user]);
 
   const handleLogout = async () => {
     await signOut({
@@ -81,6 +91,11 @@ export function Navbar() {
 
           {user ? (
             <div className="flex items-center gap-2 ml-2">
+              {credits !== null && (
+                <span className="rounded-full bg-kid-yellow/20 px-2.5 py-1 text-xs font-bold text-kid-orange">
+                  {credits} &#x2726;
+                </span>
+              )}
               <div className="flex size-9 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
                 {user.email?.charAt(0).toUpperCase() ?? "?"}
               </div>

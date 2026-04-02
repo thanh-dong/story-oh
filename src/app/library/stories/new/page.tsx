@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
@@ -16,6 +16,14 @@ export default function UserCreateStoryPage() {
   const [saving, setSaving] = useState(false);
   const [mode, setMode] = useState<Mode>("manual");
   const [generatedData, setGeneratedData] = useState<GenerateStoryResponse | null>(null);
+  const [credits, setCredits] = useState<number | undefined>(undefined);
+
+  useEffect(() => {
+    fetch("/api/me/credits")
+      .then((r) => r.json())
+      .then((d) => setCredits(d.credits))
+      .catch(() => {});
+  }, []);
 
   async function handleSave(data: {
     title: string;
@@ -97,7 +105,12 @@ export default function UserCreateStoryPage() {
           saving={saving}
         />
       ) : (
-        <GenerateStoryForm onGenerated={handleGenerated} />
+        <GenerateStoryForm
+          onGenerated={handleGenerated}
+          credits={credits}
+          generateEndpoint="/api/stories/generate"
+          onCreditsUsed={(_charged, remaining) => setCredits(remaining)}
+        />
       )}
     </div>
   );

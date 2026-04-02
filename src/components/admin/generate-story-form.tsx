@@ -11,13 +11,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { estimateCost } from "@/lib/credits";
 import type { GenerateStoryResponse } from "@/lib/types";
 
 interface GenerateStoryFormProps {
   onGenerated: (data: GenerateStoryResponse) => void;
+  credits?: number;
+  generateEndpoint?: string;
+  onCreditsUsed?: (charged: number, remaining: number) => void;
 }
 
-export function GenerateStoryForm({ onGenerated }: GenerateStoryFormProps) {
+export function GenerateStoryForm({
+  onGenerated,
+  credits,
+  generateEndpoint = "/api/admin/stories/generate",
+  onCreditsUsed,
+}: GenerateStoryFormProps) {
   const [keyword, setKeyword] = useState("");
   const [language, setLanguage] = useState<"en" | "vi" | "de">("en");
   const [audienceAge, setAudienceAge] = useState<"4-8" | "8-12">("4-8");
@@ -28,15 +37,21 @@ export function GenerateStoryForm({ onGenerated }: GenerateStoryFormProps) {
   const [maxBranches, setMaxBranches] = useState(5);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [chargeInfo, setChargeInfo] = useState<{ charged: number; remaining: number } | null>(null);
+
+  const hasCredits = credits !== undefined;
+  const estimated = estimateCost({ expectedReadingTime, maxBranches, difficulty });
+  const insufficientCredits = hasCredits && credits < estimated;
 
   async function handleGenerate() {
     if (!keyword.trim()) return;
 
     setLoading(true);
     setError(null);
+    setChargeInfo(null);
 
     try {
-      const res = await fetch("/api/admin/stories/generate", {
+      const res = await fetch(generateEndpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -57,8 +72,19 @@ export function GenerateStoryForm({ onGenerated }: GenerateStoryFormProps) {
         throw new Error(data.error || `Request failed with status ${res.status}`);
       }
 
-      const data: GenerateStoryResponse = await res.json();
-      onGenerated(data);
+      const data = await res.json();
+
+      if (data.credits_charged !== undefined) {
+        setChargeInfo({ charged: data.credits_charged, remaining: data.credits_remaining });
+        onCreditsUsed?.(data.credits_charged, data.credits_remaining);
+      }
+
+      onGenerated({
+        title: data.title,
+        summary: data.summary,
+        age_range: data.age_range,
+        story_tree: data.story_tree,
+      });
     } catch (err) {
       const message = err instanceof Error
         ? err.name === "TimeoutError"
@@ -173,6 +199,34 @@ export function GenerateStoryForm({ onGenerated }: GenerateStoryFormProps) {
         </div>
       </div>
 
+      {/* Credit info */}
+      {hasCredits && (
+        <div className="rounded-xl bg-parchment p-4 space-y-1">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">Estimated cost</span>
+            <span className="font-bold">~{estimated} credits</span>
+          </div>
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">Your balance</span>
+            <span className={`font-bold ${insufficientCredits ? "text-destructive" : ""}`}>
+              {credits} credits
+            </span>
+          </div>
+          {insufficientCredits && (
+            <p className="text-xs text-destructive mt-1">
+              Not enough credits. You need ~{estimated - credits} more.
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* Charge result */}
+      {chargeInfo && (
+        <div className="rounded-xl bg-kid-green/10 p-3 text-sm text-kid-green">
+          Charged: {chargeInfo.charged} credits ({chargeInfo.remaining} remaining)
+        </div>
+      )}
+
       {error && (
         <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300">
           <div className="flex items-center justify-between">
@@ -187,8 +241,11 @@ export function GenerateStoryForm({ onGenerated }: GenerateStoryFormProps) {
         </div>
       )}
 
-      <Button onClick={handleGenerate} disabled={loading || !keyword.trim()}>
-        {loading ? "Generating your story..." : "Generate Story"}
+      <Button
+        onClick={handleGenerate}
+        disabled={loading || !keyword.trim() || insufficientCredits}
+      >
+        {loading ? "Generating your story..." : hasCredits ? `Generate (~${estimated} credits)` : "Generate Story"}
       </Button>
     </div>
   );
