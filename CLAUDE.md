@@ -19,6 +19,25 @@ Use the `/browse` skill from gstack for all web browsing. Never use `mcp__claude
 
 Available skills: `/office-hours`, `/plan-ceo-review`, `/plan-eng-review`, `/plan-design-review`, `/design-consultation`, `/design-shotgun`, `/design-html`, `/review`, `/ship`, `/land-and-deploy`, `/canary`, `/benchmark`, `/browse`, `/connect-chrome`, `/qa`, `/qa-only`, `/design-review`, `/setup-browser-cookies`, `/setup-deploy`, `/retro`, `/investigate`, `/document-release`, `/codex`, `/cso`, `/autoplan`, `/careful`, `/freeze`, `/guard`, `/unfreeze`, `/gstack-upgrade`, `/learn`.
 
+# Dev Server with Cloudflare Tunnel
+
+To start a publicly accessible dev instance:
+
+```bash
+# 1. Push schema changes (interactive — run in user terminal)
+npm run db:push
+
+# 2. Start dev server (background)
+lsof -ti:3000 | xargs kill -9 2>/dev/null; sleep 1; rm -rf .next; npx next dev -p 3000
+
+# 3. Start Cloudflare tunnel (background, separate command)
+npx cloudflared tunnel --url http://localhost:3000
+```
+
+The tunnel prints a `*.trycloudflare.com` URL to stderr on startup. Both commands should run in background (`run_in_background: true`). Wait ~5 seconds after starting the tunnel, then read its output to find the URL.
+
+To kill both: `pkill -f "cloudflared tunnel"; lsof -ti:3000 | xargs kill -9`
+
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
