@@ -41,7 +41,7 @@ To kill both: `pkill -f "cloudflared tunnel"; lsof -ti:3000 | xargs kill -9`
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **story-oh** (417 symbols, 952 relationships, 13 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **story-oh** (427 symbols, 981 relationships, 14 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 
