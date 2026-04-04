@@ -5,6 +5,7 @@ import { vocabularyProgress } from "@/lib/db/schema";
 import { and, eq } from "drizzle-orm";
 import { verifyChildOwnership } from "@/lib/children";
 import type { RecordProgressRequest } from "@/lib/vocabulary-types";
+import { checkPlanCompletion } from "@/lib/vocabulary-utils";
 
 export async function POST(request: Request) {
   const session = await getSession();
@@ -80,6 +81,9 @@ export async function POST(request: Request) {
         quizzedAt: new Date().toISOString(),
       });
     }
+
+    // Check if plan should transition to completed
+    await checkPlanCompletion(body.planId, db);
   }
 
   return NextResponse.json({ ok: true });
