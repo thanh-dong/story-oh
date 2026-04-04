@@ -80,8 +80,8 @@ export function CreatePlanDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>Create Vocabulary Plan</Button>
+      <DialogTrigger render={<Button />}>
+        Create Vocabulary Plan
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
@@ -90,7 +90,7 @@ export function CreatePlanDialog({
         <div className="space-y-4">
           <div>
             <Label>Learning Language</Label>
-            <Select value={language} onValueChange={setLanguage}>
+            <Select value={language} onValueChange={(v) => v && setLanguage(v)}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -106,7 +106,7 @@ export function CreatePlanDialog({
 
           <div>
             <Label>Number of Weeks</Label>
-            <Select value={weeks} onValueChange={setWeeks}>
+            <Select value={weeks} onValueChange={(v) => v && setWeeks(v)}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
