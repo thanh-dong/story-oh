@@ -12,6 +12,7 @@ import {
   index,
 } from "drizzle-orm/pg-core";
 import type { StoryTree } from "@/lib/types";
+import type { VocabularyPlan } from "@/lib/vocabulary-types";
 
 // ─── Better-Auth Tables ───
 
@@ -152,4 +153,97 @@ export const creditTransactions = pgTable(
       .defaultNow(),
   },
   (table) => [index("credit_transactions_user_id_idx").on(table.user_id)]
+);
+
+// ─── Vocabulary Tables ───
+
+export const vocabularyPlans = pgTable(
+  "vocabulary_plans",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    childId: uuid("child_id")
+      .notNull()
+      .references(() => children.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    learningLanguage: text("learning_language").notNull(),
+    nativeLanguage: text("native_language").notNull(),
+    weekStartDate: date("week_start_date").notNull(),
+    weeksRequested: integer("weeks_requested").notNull(),
+    status: text("status").notNull().default("draft"),
+    creditsCost: integer("credits_cost").notNull().default(0),
+    wordsTotal: integer("words_total").notNull().default(0),
+    wordsAudioReady: integer("words_audio_ready").notNull().default(0),
+    plan: jsonb("plan").$type<VocabularyPlan>().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true, mode: "string" })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index("vocab_plans_child_lang_status_idx").on(
+      table.childId,
+      table.learningLanguage,
+      table.status
+    ),
+  ]
+);
+
+export const vocabularyWords = pgTable(
+  "vocabulary_words",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    planId: uuid("plan_id")
+      .notNull()
+      .references(() => vocabularyPlans.id, { onDelete: "cascade" }),
+    word: text("word").notNull(),
+    topic: text("topic").notNull(),
+    day: integer("day").notNull(),
+    weekNumber: integer("week_number").notNull(),
+    promptSentence: text("prompt_sentence").notNull(),
+    pronunciation: text("pronunciation").notNull(),
+    emoji: text("emoji").notNull(),
+    audioUrl: text("audio_url"),
+    audioGeneratedAt: timestamp("audio_generated_at", {
+      withTimezone: true,
+      mode: "string",
+    }),
+    createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index("vocab_words_plan_week_day_idx").on(
+      table.planId,
+      table.weekNumber,
+      table.day
+    ),
+  ]
+);
+
+export const vocabularyProgress = pgTable(
+  "vocabulary_progress",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    childId: uuid("child_id")
+      .notNull()
+      .references(() => children.id, { onDelete: "cascade" }),
+    wordId: uuid("word_id")
+      .notNull()
+      .references(() => vocabularyWords.id, { onDelete: "cascade" }),
+    planId: uuid("plan_id")
+      .notNull()
+      .references(() => vocabularyPlans.id, { onDelete: "cascade" }),
+    listened: boolean("listened").notNull().default(false),
+    quizCorrect: boolean("quiz_correct"),
+    quizAttempts: integer("quiz_attempts").notNull().default(0),
+    listenedAt: timestamp("listened_at", { withTimezone: true, mode: "string" }),
+    quizzedAt: timestamp("quizzed_at", { withTimezone: true, mode: "string" }),
+  },
+  (table) => [
+    index("vocab_progress_child_plan_idx").on(table.childId, table.planId),
+  ]
 );
