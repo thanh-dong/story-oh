@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { childStories, stories, userStories } from "@/lib/db/schema";
+import { childStories, stories, userStories, vocabularyPlans } from "@/lib/db/schema";
 import { and, eq } from "drizzle-orm";
 import { verifyChildOwnership, calculateAge } from "@/lib/children";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +27,16 @@ export default async function ChildReadingHubPage({
   if (!child) redirect("/dashboard");
 
   const age = calculateAge(child.dateOfBirth);
+
+  const [activePlan] = await db
+    .select()
+    .from(vocabularyPlans)
+    .where(
+      and(
+        eq(vocabularyPlans.childId, childId),
+        eq(vocabularyPlans.status, "active")
+      )
+    );
 
   const rows = await db
     .select()
@@ -71,6 +81,25 @@ export default async function ChildReadingHubPage({
           </div>
         </div>
       </div>
+
+      {activePlan && (
+        <Link
+          href={`/dashboard/${childId}/read/vocabulary/${activePlan.id}`}
+          className="block animate-fade-up"
+        >
+          <div className="rounded-2xl bg-gradient-to-br from-kid-yellow to-kid-orange p-5 storybook-shadow transition-all duration-300 hover:-translate-y-1">
+            <div className="flex items-center gap-3">
+              <span className="text-4xl">📚</span>
+              <div>
+                <h2 className="text-lg font-extrabold text-white">Today's Words</h2>
+                <p className="text-sm text-white/80">
+                  {activePlan.wordsTotal} words to learn
+                </p>
+              </div>
+            </div>
+          </div>
+        </Link>
+      )}
 
       {sorted.length === 0 ? (
         <div className="flex flex-col items-center gap-4 rounded-2xl bg-parchment py-16 text-center">

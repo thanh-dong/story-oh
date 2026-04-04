@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { childStories, stories, userStories } from "@/lib/db/schema";
+import { childStories, stories, userStories, vocabularyPlans } from "@/lib/db/schema";
 import { and, eq } from "drizzle-orm";
 import { verifyChildOwnership, calculateAge } from "@/lib/children";
 import { Badge } from "@/components/ui/badge";
@@ -49,6 +49,17 @@ export default async function ChildManagePage({
     story: row.stories as Story,
     progress: row.user_stories?.progress ?? null,
   }));
+
+  // Fetch vocabulary plans for this child
+  const vocabPlansRows = await db
+    .select()
+    .from(vocabularyPlans)
+    .where(eq(vocabularyPlans.childId, childId));
+
+  const activePlan = vocabPlansRows.find(
+    (p) => p.status === "active" || p.status === "approved"
+  );
+  const draftPlan = vocabPlansRows.find((p) => p.status === "draft");
 
   const completedCount = assignedStories.filter(
     (s) => s.progress && isAtEnding(s.story.story_tree, s.progress.current_node)
@@ -207,6 +218,43 @@ export default async function ChildManagePage({
           </div>
         )}
       </section>
+
+      {/* Vocabulary Section */}
+      <div className="space-y-4">
+        <h2 className="text-xl font-bold">Vocabulary</h2>
+        {activePlan ? (
+          <div className="rounded-2xl bg-card p-6 storybook-shadow">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="font-bold">Vocabulary Plan</h3>
+              <span className="text-sm text-muted-foreground capitalize">{activePlan.status}</span>
+            </div>
+            <p className="text-sm text-muted-foreground mb-3">
+              {activePlan.weeksRequested} week{activePlan.weeksRequested > 1 ? "s" : ""} · {activePlan.wordsTotal} words
+            </p>
+            <div className="h-2 rounded-full bg-muted overflow-hidden mb-3">
+              <div
+                className="h-full rounded-full bg-primary transition-all"
+                style={{ width: `${activePlan.wordsTotal > 0 ? Math.round((activePlan.wordsAudioReady / activePlan.wordsTotal) * 100) : 0}%` }}
+              />
+            </div>
+            <Link
+              href={`/dashboard/${childId}/read/vocabulary/${activePlan.id}`}
+              className="inline-block rounded-full bg-primary px-4 py-1.5 text-sm font-bold text-primary-foreground"
+            >
+              Go to Vocabulary
+            </Link>
+          </div>
+        ) : draftPlan ? (
+          <div className="rounded-2xl bg-card p-6 storybook-shadow">
+            <p className="font-bold mb-2">Draft plan ready for review</p>
+            <p className="text-sm text-muted-foreground">Review and approve the plan to start learning.</p>
+          </div>
+        ) : (
+          <div className="rounded-2xl bg-muted p-6 text-center">
+            <p className="text-muted-foreground">No vocabulary plan yet.</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
