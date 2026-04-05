@@ -55,7 +55,7 @@ export function VocabularyManageClient({
     }
   }
 
-  // Show active/approved plan progress
+  // Show active/approved plan progress + full plan details
   if (activePlan) {
     return (
       <div className="space-y-6">
@@ -82,6 +82,17 @@ export function VocabularyManageClient({
             Open Vocabulary Learning
           </Button>
         )}
+
+        {/* Full plan details */}
+        <h2 className="text-lg font-bold pt-2">Plan Details</h2>
+        <PlanReview
+          planId={activePlan.id}
+          plan={activePlan.plan}
+          creditsCost={activePlan.creditsCost}
+          status={activePlan.status}
+          onApproved={() => {}}
+          onRegenerated={() => {}}
+        />
       </div>
     );
   }
