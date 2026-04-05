@@ -176,7 +176,7 @@ export function PlanReview({
               return (
                 <div
                   key={dayKey}
-                  className="rounded-xl bg-card p-4 storybook-shadow"
+                  className={`rounded-xl border-l-4 ${day.isReview ? "border-kid-purple/40" : "border-primary/30"} bg-card p-4 shadow-card`}
                 >
                   <div className="flex items-center gap-2 mb-2">
                     <span className="font-semibold">Day {day.day}</span>

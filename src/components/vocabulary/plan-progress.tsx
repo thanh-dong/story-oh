@@ -56,7 +56,8 @@ export function PlanProgress({
     ?.days.find((d) => d.day === current.day);
 
   return (
-    <div className="rounded-2xl bg-card p-6 storybook-shadow space-y-4">
+    <div className="relative overflow-hidden rounded-2xl bg-card p-6 shadow-card space-y-4">
+      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary to-kid-pink" />
       <div className="flex items-center justify-between">
         <h3 className="font-bold text-lg">Vocabulary Plan</h3>
         <Badge className={STATUS_COLORS[status] || ""}>
@@ -82,7 +83,7 @@ export function PlanProgress({
         </div>
         <div className="h-2 rounded-full bg-muted overflow-hidden">
           <div
-            className="h-full rounded-full bg-primary transition-all"
+            className="h-full rounded-full bg-primary transition-all animate-progress-fill"
             style={{ width: `${progressPercent}%` }}
           />
         </div>

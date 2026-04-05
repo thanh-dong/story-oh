@@ -175,11 +175,11 @@ export function VocabularyLearningClient({
               setActiveWordId(null);
               setShowQuiz(false);
             }}
-            className={`shrink-0 rounded-full px-3 py-1 text-sm font-semibold transition-all ${
+            className={
               d.week === selectedWeek && d.day === selectedDay
-                ? "bg-primary text-primary-foreground"
-                : "bg-muted hover:bg-muted/80"
-            }`}
+                ? "shrink-0 rounded-full bg-gradient-to-r from-primary to-primary/80 px-4 py-1.5 text-sm font-semibold text-white shadow-card transition-all"
+                : "shrink-0 rounded-full border border-border bg-card px-4 py-1.5 text-sm font-semibold transition-all hover:bg-muted"
+            }
           >
             W{d.week}D{d.day}
           </button>
@@ -209,7 +209,7 @@ export function VocabularyLearningClient({
           )}
         </div>
 
-        <div className="md:w-[70%] flex items-center justify-center min-h-[400px] rounded-2xl bg-card storybook-shadow">
+        <div className="md:w-[70%] flex items-center justify-center min-h-[400px] rounded-2xl bg-card shadow-card">
           {activeWord ? (
             <WordDetail
               word={activeWord}
@@ -217,9 +217,11 @@ export function VocabularyLearningClient({
               onListened={handleListened}
             />
           ) : (
-            <div className="text-center text-muted-foreground">
-              <span className="text-5xl block mb-4">&#x1F449;</span>
-              <p className="font-semibold">
+            <div className="text-center text-muted-foreground p-8">
+              <div className="mx-auto mb-4 flex size-20 items-center justify-center rounded-full bg-gradient-to-br from-kid-yellow/20 to-kid-orange/10">
+                <span className="text-4xl">👋</span>
+              </div>
+              <p className="text-lg font-semibold">
                 {childName}, tap a word to start learning!
               </p>
             </div>
