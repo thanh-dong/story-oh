@@ -101,14 +101,19 @@ export function VocabularyManageClient({
   if (draftPlan) {
     return (
       <div className="space-y-6">
-        <h2 className="text-lg font-bold">Review Plan</h2>
+        <h2 className="text-lg font-bold">Review & Edit Plan</h2>
+        <p className="text-sm text-muted-foreground">
+          Click a topic name to rename it. Hover a word to remove it. Click + Add to add words.
+        </p>
         <PlanReview
           planId={draftPlan.id}
           plan={draftPlan.plan}
           creditsCost={draftPlan.creditsCost}
           status={draftPlan.status}
+          editable
           onApproved={() => router.refresh()}
           onRegenerated={() => router.refresh()}
+          onPlanUpdated={() => router.refresh()}
         />
         <Button
           variant="outline"
