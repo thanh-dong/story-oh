@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getGradient, getStoryEmoji } from "@/lib/gradients";
 import type { Story, StoryTree } from "@/lib/types";
-import { ArrowLeft, BookOpen, Pencil, Play, Trash2 } from "lucide-react";
+import { ArrowLeft, BookOpen, CheckCircle, Pencil, Play, Trash2 } from "lucide-react";
 
 function isAtEnding(storyTree: StoryTree, currentNode: string): boolean {
   const node = storyTree[currentNode];
@@ -129,7 +129,7 @@ export default async function ChildManagePage({
       </div>
 
       {/* Start Reader Mode CTA */}
-      <div className="rounded-2xl bg-gradient-to-r from-purple-500 to-indigo-500 p-6 text-white storybook-shadow sm:p-8">
+      <div className="rounded-2xl bg-gradient-to-r from-purple-500 to-indigo-500 p-6 text-white shadow-card sm:p-8">
         <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-xl font-bold sm:text-2xl">Reader Mode</h2>
@@ -151,17 +151,32 @@ export default async function ChildManagePage({
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4">
-        <div className="rounded-xl bg-card p-4 text-center storybook-shadow">
-          <p className="text-2xl font-bold">{assignedStories.length}</p>
-          <p className="text-sm text-muted-foreground">Assigned</p>
+        <div className="flex items-center gap-3 rounded-xl bg-card p-4 shadow-card">
+          <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
+            <BookOpen className="size-5 text-primary" />
+          </div>
+          <div>
+            <p className="text-2xl font-bold">{assignedStories.length}</p>
+            <p className="text-xs text-muted-foreground">Assigned</p>
+          </div>
         </div>
-        <div className="rounded-xl bg-card p-4 text-center storybook-shadow">
-          <p className="text-2xl font-bold">{inProgressCount}</p>
-          <p className="text-sm text-muted-foreground">In Progress</p>
+        <div className="flex items-center gap-3 rounded-xl bg-card p-4 shadow-card">
+          <div className="flex size-10 items-center justify-center rounded-lg bg-kid-yellow/20">
+            <Play className="size-5 text-kid-orange" />
+          </div>
+          <div>
+            <p className="text-2xl font-bold">{inProgressCount}</p>
+            <p className="text-xs text-muted-foreground">In Progress</p>
+          </div>
         </div>
-        <div className="rounded-xl bg-card p-4 text-center storybook-shadow">
-          <p className="text-2xl font-bold">{completedCount}</p>
-          <p className="text-sm text-muted-foreground">Completed</p>
+        <div className="flex items-center gap-3 rounded-xl bg-card p-4 shadow-card">
+          <div className="flex size-10 items-center justify-center rounded-lg bg-kid-green/20">
+            <CheckCircle className="size-5 text-kid-green" />
+          </div>
+          <div>
+            <p className="text-2xl font-bold">{completedCount}</p>
+            <p className="text-xs text-muted-foreground">Completed</p>
+          </div>
         </div>
       </div>
 
@@ -204,7 +219,7 @@ export default async function ChildManagePage({
               return (
                 <article
                   key={story.id}
-                  className="overflow-hidden rounded-2xl bg-card storybook-shadow"
+                  className="overflow-hidden rounded-2xl bg-card shadow-card"
                 >
                   <div className={`relative flex h-28 items-center justify-center bg-gradient-to-br ${gradient}`}>
                     <span className="text-4xl drop-shadow-md">{emoji}</span>
@@ -248,7 +263,7 @@ export default async function ChildManagePage({
           </Button>
         </div>
         {activePlan ? (
-          <div className="rounded-2xl bg-card p-6 storybook-shadow">
+          <div className="rounded-2xl bg-card p-6 shadow-card">
             <div className="flex items-center justify-between mb-2">
               <h3 className="font-bold">Vocabulary Plan</h3>
               <span className="text-sm text-muted-foreground capitalize">{activePlan.status}</span>
@@ -258,7 +273,7 @@ export default async function ChildManagePage({
             </p>
             <div className="h-2 rounded-full bg-muted overflow-hidden mb-3">
               <div
-                className="h-full rounded-full bg-primary transition-all"
+                className="h-full rounded-full bg-primary transition-all animate-progress-fill"
                 style={{ width: `${activePlan.wordsTotal > 0 ? Math.round((vocabWordsListened / activePlan.wordsTotal) * 100) : 0}%` }}
               />
             </div>
@@ -271,7 +286,7 @@ export default async function ChildManagePage({
           </div>
         ) : draftPlan ? (
           <Link href={`/dashboard/${childId}/vocabulary`} className="block">
-            <div className="rounded-2xl bg-card p-6 storybook-shadow transition-all hover:-translate-y-1">
+            <div className="rounded-2xl bg-card p-6 shadow-card transition-all hover:-translate-y-1">
               <p className="font-bold mb-2">Draft plan ready for review</p>
               <p className="text-sm text-muted-foreground">Tap to review and approve the plan to start learning.</p>
             </div>
