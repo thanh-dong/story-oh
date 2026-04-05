@@ -51,6 +51,7 @@
   --color-kid-orange: var(--kid-orange);
   --color-kid-pink: var(--kid-pink);
   --color-kid-green: var(--kid-green);
+  --color-kid-purple: var(--kid-purple);
   --color-parchment: var(--parchment);
   --color-warm-shadow: var(--warm-shadow);
 }
@@ -94,6 +95,7 @@
   --kid-orange: oklch(0.73 0.17 55);
   --kid-pink: oklch(0.68 0.19 350);
   --kid-green: oklch(0.70 0.16 155);
+  --kid-purple: oklch(0.65 0.18 290);
   /* Storybook extras */
   --parchment: oklch(0.95 0.02 80);
   --warm-shadow: oklch(0.45 0.05 55 / 12%);
@@ -136,6 +138,7 @@
   --kid-orange: oklch(0.70 0.15 55);
   --kid-pink: oklch(0.66 0.17 350);
   --kid-green: oklch(0.68 0.14 155);
+  --kid-purple: oklch(0.72 0.15 290);
   --parchment: oklch(0.23 0.02 55);
   --warm-shadow: oklch(0.1 0.02 55 / 30%);
 }
@@ -175,13 +178,23 @@ body::before {
       0 2px 6px var(--warm-shadow),
       0 8px 24px var(--warm-shadow);
   }
+  .shadow-card {
+    box-shadow:
+      0 4px 16px var(--warm-shadow),
+      0 2px 4px oklch(0 0 0 / 4%);
+  }
+  .shadow-elevated {
+    box-shadow:
+      0 8px 32px var(--warm-shadow),
+      0 4px 8px oklch(0 0 0 / 6%);
+  }
 }
 
 /* Gentle entrance animations */
 @keyframes fade-up {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
@@ -206,7 +219,7 @@ body::before {
 }
 
 .animate-fade-up {
-  animation: fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: fade-up 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .animate-fade-in {
@@ -217,19 +230,72 @@ body::before {
   animation: scale-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+@keyframes bounce-soft {
+  0%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-6px); }
+  60% { transform: translateY(-2px); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-3px); }
+  40% { transform: translateX(3px); }
+  60% { transform: translateX(-2px); }
+  80% { transform: translateX(2px); }
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+
+@keyframes progress-fill {
+  from { width: 0%; }
+}
+
+.animate-bounce-soft {
+  animation: bounce-soft 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animate-shake {
+  animation: shake 0.3s ease;
+}
+
+.animate-pulse-ring {
+  animation: pulse-ring 1.5s ease-out infinite;
+}
+
+.animate-progress-fill {
+  animation: progress-fill 0.6s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-up,
+  .animate-fade-in,
+  .animate-scale-in,
+  .animate-bounce-soft,
+  .animate-shake,
+  .animate-pulse-ring,
+  .animate-progress-fill,
+  .stagger-children > * {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+  }
+}
+
 /* Stagger children animations */
 .stagger-children > * {
   animation: fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 .stagger-children > *:nth-child(1) { animation-delay: 0ms; }
-.stagger-children > *:nth-child(2) { animation-delay: 60ms; }
-.stagger-children > *:nth-child(3) { animation-delay: 120ms; }
-.stagger-children > *:nth-child(4) { animation-delay: 180ms; }
-.stagger-children > *:nth-child(5) { animation-delay: 240ms; }
-.stagger-children > *:nth-child(6) { animation-delay: 300ms; }
-.stagger-children > *:nth-child(7) { animation-delay: 360ms; }
-.stagger-children > *:nth-child(8) { animation-delay: 420ms; }
-.stagger-children > *:nth-child(9) { animation-delay: 480ms; }
+.stagger-children > *:nth-child(2) { animation-delay: 30ms; }
+.stagger-children > *:nth-child(3) { animation-delay: 60ms; }
+.stagger-children > *:nth-child(4) { animation-delay: 90ms; }
+.stagger-children > *:nth-child(5) { animation-delay: 120ms; }
+.stagger-children > *:nth-child(6) { animation-delay: 150ms; }
+.stagger-children > *:nth-child(7) { animation-delay: 180ms; }
+.stagger-children > *:nth-child(8) { animation-delay: 210ms; }
+.stagger-children > *:nth-child(9) { animation-delay: 240ms; }
 
 /* Kid mode — hide navbar and footer */
 :has(.kid-mode) > nav[class*="sticky"],
