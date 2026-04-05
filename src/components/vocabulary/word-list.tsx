@@ -22,10 +22,10 @@ export function WordList({ words, activeWordId, onSelect }: WordListProps) {
           onClick={() => onSelect(w.id)}
           className={`flex items-center gap-3 rounded-xl px-4 py-3 text-left transition-all ${
             activeWordId === w.id
-              ? "bg-primary text-primary-foreground storybook-shadow"
+              ? "border-l-4 border-primary bg-primary/10 shadow-card"
               : w.listened
                 ? "bg-muted/50 text-muted-foreground"
-                : "bg-card hover:bg-muted storybook-shadow"
+                : "bg-card shadow-card hover:shadow-elevated hover:-translate-y-0.5"
           }`}
         >
           <span className="text-2xl">{w.emoji}</span>

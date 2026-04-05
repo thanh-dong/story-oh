@@ -73,25 +73,35 @@ export function WordDetail({ word, voice, onListened }: WordDetailProps) {
 
   return (
     <div className="flex flex-col items-center justify-center gap-6 p-8">
-      <span className="text-8xl drop-shadow-md animate-fade-up">
-        {word.emoji}
-      </span>
-      <h2 className="text-4xl font-extrabold tracking-tight">
+      <div className="relative">
+        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-kid-yellow/20 to-kid-orange/10 blur-xl" />
+        <span className="relative text-8xl drop-shadow-md animate-fade-up">
+          {word.emoji}
+        </span>
+      </div>
+      <h2 className="text-5xl font-extrabold tracking-tight">
         {word.word}
       </h2>
-      <p className="text-lg text-muted-foreground">{word.pronunciation}</p>
-      <Button
-        size="lg"
-        onClick={handlePlay}
-        disabled={audioState === "loading"}
-        className="h-16 w-16 rounded-full text-2xl"
-      >
-        {audioState === "loading"
-          ? "..."
-          : audioState === "playing"
-            ? "||"
-            : "\u25B6"}
-      </Button>
+      <span className="rounded-full bg-muted px-3 py-1 text-sm text-muted-foreground">
+        {word.pronunciation}
+      </span>
+      <div className="relative">
+        {audioState === "idle" && (
+          <div className="absolute inset-0 rounded-full bg-primary/20 animate-pulse-ring" />
+        )}
+        <Button
+          size="lg"
+          onClick={handlePlay}
+          disabled={audioState === "loading"}
+          className="relative h-16 w-16 rounded-full bg-gradient-to-br from-primary to-primary/80 text-2xl text-white shadow-card hover:shadow-elevated"
+        >
+          {audioState === "loading"
+            ? "..."
+            : audioState === "playing"
+              ? "||"
+              : "\u25B6"}
+        </Button>
+      </div>
       <p className="text-sm text-muted-foreground text-center max-w-sm">
         Tap to hear the word. Listen and repeat!
       </p>
