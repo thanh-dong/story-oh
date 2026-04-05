@@ -28,15 +28,15 @@ export default async function ChildReadingHubPage({
 
   const age = calculateAge(child.dateOfBirth);
 
-  const [activePlan] = await db
+  // Fetch active or approved vocabulary plan
+  const vocabRows = await db
     .select()
     .from(vocabularyPlans)
-    .where(
-      and(
-        eq(vocabularyPlans.childId, childId),
-        eq(vocabularyPlans.status, "active")
-      )
-    );
+    .where(eq(vocabularyPlans.childId, childId));
+
+  const activePlan = vocabRows.find((p) => p.status === "active");
+  const approvedPlan = vocabRows.find((p) => p.status === "approved");
+  const vocabPlan = activePlan || approvedPlan;
 
   const rows = await db
     .select()
@@ -82,23 +82,37 @@ export default async function ChildReadingHubPage({
         </div>
       </div>
 
-      {activePlan && (
-        <Link
-          href={`/dashboard/${childId}/read/vocabulary/${activePlan.id}`}
-          className="block animate-fade-up"
-        >
-          <div className="rounded-2xl bg-gradient-to-br from-kid-yellow to-kid-orange p-5 storybook-shadow transition-all duration-300 hover:-translate-y-1">
+      {vocabPlan && (
+        vocabPlan.status === "active" ? (
+          <Link
+            href={`/dashboard/${childId}/read/vocabulary/${vocabPlan.id}`}
+            className="block animate-fade-up"
+          >
+            <div className="rounded-2xl bg-gradient-to-br from-kid-yellow to-kid-orange p-5 storybook-shadow transition-all duration-300 hover:-translate-y-1">
+              <div className="flex items-center gap-3">
+                <span className="text-4xl">📚</span>
+                <div>
+                  <h2 className="text-lg font-extrabold text-white">Today&apos;s Words</h2>
+                  <p className="text-sm text-white/80">
+                    {vocabPlan.wordsTotal} words to learn
+                  </p>
+                </div>
+              </div>
+            </div>
+          </Link>
+        ) : (
+          <div className="animate-fade-up rounded-2xl bg-gradient-to-br from-kid-yellow/60 to-kid-orange/60 p-5 storybook-shadow">
             <div className="flex items-center gap-3">
               <span className="text-4xl">📚</span>
               <div>
-                <h2 className="text-lg font-extrabold text-white">Today's Words</h2>
+                <h2 className="text-lg font-extrabold text-white">Words Coming Soon!</h2>
                 <p className="text-sm text-white/80">
-                  {activePlan.wordsTotal} words to learn
+                  Your vocabulary plan is getting ready...
                 </p>
               </div>
             </div>
           </div>
-        </Link>
+        )
       )}
 
       {sorted.length === 0 ? (
