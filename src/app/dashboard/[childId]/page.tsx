@@ -263,7 +263,7 @@ export default async function ChildManagePage({
               />
             </div>
             <Link
-              href={`/dashboard/${childId}/read/vocabulary/${activePlan.id}`}
+              href={`/dashboard/${childId}/vocabulary`}
               className="inline-block rounded-full bg-primary px-4 py-1.5 text-sm font-bold text-primary-foreground"
             >
               Go to Vocabulary
