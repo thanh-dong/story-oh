@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface QuizWord {
@@ -88,11 +89,11 @@ export function QuickCheck({
 
   if (completed) {
     return (
-      <div className="flex flex-col items-center justify-center gap-4 p-8">
-        <span className="text-6xl">&#x1F389;</span>
-        <h2 className="text-2xl font-extrabold">Great job!</h2>
-        <p className="text-muted-foreground">
-          You finished today's words!
+      <div className="flex flex-col items-center justify-center gap-6 rounded-3xl bg-gradient-to-br from-kid-yellow/20 via-kid-green/10 to-kid-purple/10 p-12">
+        <span className="text-7xl animate-bounce-soft">&#x1F389;</span>
+        <h2 className="text-3xl font-extrabold">Great job!</h2>
+        <p className="text-lg text-muted-foreground">
+          You finished today&apos;s words!
         </p>
       </div>
     );
@@ -102,20 +103,35 @@ export function QuickCheck({
 
   return (
     <div className="flex flex-col items-center gap-8 p-8">
-      <p className="text-sm text-muted-foreground">
-        {currentIndex + 1} / {shuffledWords.length}
-      </p>
-      <span className="text-7xl">{current.emoji}</span>
+      <div className="flex gap-1.5">
+        {shuffledWords.map((_, i) => (
+          <div
+            key={i}
+            className={`size-2.5 rounded-full transition-colors ${
+              i < currentIndex
+                ? "bg-kid-green"
+                : i === currentIndex
+                  ? "bg-primary"
+                  : "bg-muted"
+            }`}
+          />
+        ))}
+      </div>
+      <div className="flex size-28 items-center justify-center rounded-full bg-gradient-to-br from-kid-yellow/20 to-kid-orange/10">
+        <span className="text-7xl">{current.emoji}</span>
+      </div>
 
       {feedback === "correct" && (
-        <p className="text-xl font-bold text-green-600 animate-fade-up">
-          &#x2713; Correct!
-        </p>
+        <div className="flex items-center gap-2 text-xl font-bold text-kid-green animate-bounce-soft">
+          <Check className="size-6" />
+          Correct!
+        </div>
       )}
       {feedback === "wrong" && (
-        <p className="text-xl font-bold text-orange-500 animate-fade-up">
+        <div className="flex items-center gap-2 text-xl font-bold text-destructive animate-shake">
+          <X className="size-6" />
           Try again!
-        </p>
+        </div>
       )}
 
       {feedback !== "correct" && (
@@ -127,7 +143,7 @@ export function QuickCheck({
               size="lg"
               onClick={() => handleChoice(opt)}
               disabled={feedback !== null}
-              className="h-14 text-lg font-bold"
+              className="h-16 rounded-2xl border-2 text-lg font-bold transition-all hover:border-primary hover:shadow-card"
             >
               {opt.word}
             </Button>
