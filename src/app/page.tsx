@@ -1,4 +1,6 @@
+import React from "react";
 import Link from "next/link";
+import { BookOpen, MessageCircleQuestion, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { db } from "@/lib/db";
 import { stories as storiesTable } from "@/lib/db/schema";
@@ -18,10 +20,7 @@ export default async function Home() {
       {/* Hero */}
       <section className="relative flex flex-col items-center gap-6 pt-8 text-center sm:pt-16">
         <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-          <span className="absolute left-[8%] top-4 text-4xl opacity-20 sm:text-5xl">&#x2728;</span>
-          <span className="absolute right-[10%] top-12 text-3xl opacity-15 sm:text-4xl">&#x1F31F;</span>
-          <span className="absolute bottom-8 left-[15%] text-3xl opacity-15">&#x1F343;</span>
-          <span className="absolute bottom-4 right-[12%] text-4xl opacity-20">&#x2B50;</span>
+          <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-kid-purple/5 to-transparent" />
         </div>
 
         <div className="animate-fade-up">
@@ -45,7 +44,7 @@ export default async function Home() {
 
         <div className="animate-fade-up" style={{ animationDelay: "180ms" }}>
           <Link href="/explore">
-            <Button className="mt-2 rounded-full px-8 py-6 text-lg font-bold storybook-shadow transition-shadow hover:storybook-shadow-lg">
+            <Button className="mt-2 rounded-full px-8 py-6 text-lg font-bold shadow-card transition-all hover:shadow-elevated hover:-translate-y-0.5">
               Start Exploring
             </Button>
           </Link>
@@ -55,11 +54,11 @@ export default async function Home() {
       {/* How It Works */}
       <section className="animate-fade-up" style={{ animationDelay: "240ms" }}>
         <div className="mx-auto flex max-w-2xl items-center justify-center gap-4 sm:gap-6">
-          <Step emoji="&#x1F4D6;" label="Pick a story" />
+          <Step icon={<BookOpen className="size-6 text-primary sm:size-7" />} label="Pick a story" />
           <Arrow />
-          <Step emoji="&#x1F914;" label="Make choices" />
+          <Step icon={<MessageCircleQuestion className="size-6 text-kid-orange sm:size-7" />} label="Make choices" />
           <Arrow />
-          <Step emoji="&#x2728;" label="Discover endings" />
+          <Step icon={<Sparkles className="size-6 text-kid-pink sm:size-7" />} label="Discover endings" />
         </div>
       </section>
 
@@ -91,11 +90,11 @@ export default async function Home() {
   );
 }
 
-function Step({ emoji, label }: { emoji: string; label: string }) {
+function Step({ icon, label }: { icon: React.ReactNode; label: string }) {
   return (
     <div className="flex flex-col items-center gap-2">
-      <div className="flex size-14 items-center justify-center rounded-2xl bg-parchment storybook-shadow sm:size-16">
-        <span className="text-2xl sm:text-3xl" dangerouslySetInnerHTML={{ __html: emoji }} />
+      <div className="flex size-14 items-center justify-center rounded-2xl bg-parchment shadow-card sm:size-16">
+        {icon}
       </div>
       <span className="text-xs font-semibold text-muted-foreground sm:text-sm">{label}</span>
     </div>
