@@ -220,8 +220,17 @@ export default async function ChildManagePage({
       </section>
 
       {/* Vocabulary Section */}
-      <div className="space-y-4">
-        <h2 className="text-xl font-bold">Vocabulary</h2>
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-bold">Vocabulary</h2>
+          <Button
+            variant="outline"
+            className="rounded-xl"
+            render={<Link href={`/dashboard/${childId}/vocabulary`} />}
+          >
+            {activePlan ? "Manage Plan" : draftPlan ? "Review Draft" : "Create Plan"}
+          </Button>
+        </div>
         {activePlan ? (
           <div className="rounded-2xl bg-card p-6 storybook-shadow">
             <div className="flex items-center justify-between mb-2">
@@ -245,16 +254,24 @@ export default async function ChildManagePage({
             </Link>
           </div>
         ) : draftPlan ? (
-          <div className="rounded-2xl bg-card p-6 storybook-shadow">
-            <p className="font-bold mb-2">Draft plan ready for review</p>
-            <p className="text-sm text-muted-foreground">Review and approve the plan to start learning.</p>
-          </div>
+          <Link href={`/dashboard/${childId}/vocabulary`} className="block">
+            <div className="rounded-2xl bg-card p-6 storybook-shadow transition-all hover:-translate-y-1">
+              <p className="font-bold mb-2">Draft plan ready for review</p>
+              <p className="text-sm text-muted-foreground">Tap to review and approve the plan to start learning.</p>
+            </div>
+          </Link>
         ) : (
-          <div className="rounded-2xl bg-muted p-6 text-center">
-            <p className="text-muted-foreground">No vocabulary plan yet.</p>
-          </div>
+          <Link href={`/dashboard/${childId}/vocabulary`} className="block">
+            <div className="rounded-2xl bg-muted p-6 text-center transition-all hover:-translate-y-1">
+              <span className="text-4xl block mb-2">📖</span>
+              <p className="font-bold">Create a Vocabulary Plan</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                AI-generated weekly learning for {child.name}
+              </p>
+            </div>
+          </Link>
         )}
-      </div>
+      </section>
     </div>
   );
 }
