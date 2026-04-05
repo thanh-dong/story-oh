@@ -20,7 +20,7 @@ export function StoryCard({ story, childrenList, assignedChildIds }: StoryCardPr
   ).length;
 
   return (
-    <article className="group relative h-full overflow-hidden rounded-2xl bg-card storybook-shadow transition-all duration-300 hover:-translate-y-1 hover:storybook-shadow-lg">
+    <article className="group relative h-full overflow-hidden rounded-2xl bg-card shadow-card transition-all duration-200 hover:-translate-y-1 hover:shadow-elevated">
       <Link href={`/story/${story.id}`} className="block">
         {/* Gradient cover */}
         <div
