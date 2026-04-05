@@ -22,7 +22,7 @@ export function ChildCard({
 }: ChildCardProps) {
   return (
     <Link href={`/dashboard/${id}`} className="group block">
-      <article className="flex flex-col items-center gap-3 rounded-2xl bg-card p-6 storybook-shadow transition-all duration-300 hover:-translate-y-1 hover:storybook-shadow-lg">
+      <article className="flex flex-col items-center gap-3 rounded-2xl bg-card p-6 shadow-card transition-all duration-200 hover:-translate-y-1 hover:shadow-elevated">
         <span className="text-5xl transition-transform duration-300 group-hover:scale-110">
           {avatar}
         </span>

@@ -1,8 +1,9 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { childStories, stories, userStories } from "@/lib/db/schema";
+import { childStories, stories, userStories, vocabularyPlans } from "@/lib/db/schema";
 import { and, eq } from "drizzle-orm";
 import { verifyChildOwnership, calculateAge } from "@/lib/children";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +28,16 @@ export default async function ChildReadingHubPage({
   if (!child) redirect("/dashboard");
 
   const age = calculateAge(child.dateOfBirth);
+
+  // Fetch active or approved vocabulary plan
+  const vocabRows = await db
+    .select()
+    .from(vocabularyPlans)
+    .where(eq(vocabularyPlans.childId, childId));
+
+  const activePlan = vocabRows.find((p) => p.status === "active");
+  const approvedPlan = vocabRows.find((p) => p.status === "approved");
+  const vocabPlan = activePlan || approvedPlan;
 
   const rows = await db
     .select()
@@ -62,7 +73,7 @@ export default async function ChildReadingHubPage({
       {/* Header */}
       <div className="animate-fade-up">
         <div className="flex items-center gap-4">
-          <span className="text-5xl">{child.avatar}</span>
+          <span className="text-6xl">{child.avatar}</span>
           <div>
             <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
               Hi {child.name}!
@@ -71,6 +82,42 @@ export default async function ChildReadingHubPage({
           </div>
         </div>
       </div>
+
+      {vocabPlan && (
+        vocabPlan.status === "active" ? (
+          <Link
+            href={`/dashboard/${childId}/read/vocabulary/${vocabPlan.id}`}
+            className="block animate-fade-up"
+          >
+            <div className="rounded-2xl bg-gradient-to-br from-kid-yellow to-kid-orange p-6 shadow-card transition-all duration-300 hover:-translate-y-1 hover:shadow-elevated">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <span className="text-5xl">📚</span>
+                  <div>
+                    <h2 className="text-xl font-extrabold text-white">Today&apos;s Words</h2>
+                    <p className="text-sm text-white/80">
+                      {vocabPlan.wordsTotal} words to learn
+                    </p>
+                  </div>
+                </div>
+                <ArrowRight className="size-6 text-white/60" />
+              </div>
+            </div>
+          </Link>
+        ) : (
+          <div className="animate-fade-up rounded-2xl bg-gradient-to-br from-kid-yellow/60 to-kid-orange/60 p-5 storybook-shadow">
+            <div className="flex items-center gap-3">
+              <span className="text-4xl">📚</span>
+              <div>
+                <h2 className="text-lg font-extrabold text-white">Words Coming Soon!</h2>
+                <p className="text-sm text-white/80">
+                  Your vocabulary plan is getting ready...
+                </p>
+              </div>
+            </div>
+          </div>
+        )
+      )}
 
       {sorted.length === 0 ? (
         <div className="flex flex-col items-center gap-4 rounded-2xl bg-parchment py-16 text-center">
@@ -94,7 +141,7 @@ export default async function ChildReadingHubPage({
                 href={`/dashboard/${childId}/read/${story.id}`}
                 className="group block"
               >
-                <article className="relative overflow-hidden rounded-2xl bg-card storybook-shadow transition-all duration-300 hover:-translate-y-1 hover:storybook-shadow-lg">
+                <article className="relative overflow-hidden rounded-2xl bg-card shadow-card transition-all duration-200 hover:-translate-y-1 hover:shadow-elevated">
                   <div className={`relative flex h-28 items-center justify-center bg-gradient-to-br ${gradient}`}>
                     <span className="text-4xl drop-shadow-md transition-transform duration-300 group-hover:scale-110">{emoji}</span>
                     {isDone && (

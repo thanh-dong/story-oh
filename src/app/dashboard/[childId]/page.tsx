@@ -2,14 +2,14 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { childStories, stories, userStories } from "@/lib/db/schema";
+import { childStories, stories, userStories, vocabularyPlans, vocabularyProgress } from "@/lib/db/schema";
 import { and, eq } from "drizzle-orm";
 import { verifyChildOwnership, calculateAge } from "@/lib/children";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getGradient, getStoryEmoji } from "@/lib/gradients";
 import type { Story, StoryTree } from "@/lib/types";
-import { ArrowLeft, BookOpen, Pencil, Play, Trash2 } from "lucide-react";
+import { ArrowLeft, BookOpen, CheckCircle, Pencil, Play, Trash2 } from "lucide-react";
 
 function isAtEnding(storyTree: StoryTree, currentNode: string): boolean {
   const node = storyTree[currentNode];
@@ -49,6 +49,33 @@ export default async function ChildManagePage({
     story: row.stories as Story,
     progress: row.user_stories?.progress ?? null,
   }));
+
+  // Fetch vocabulary plans for this child
+  const vocabPlansRows = await db
+    .select()
+    .from(vocabularyPlans)
+    .where(eq(vocabularyPlans.childId, childId));
+
+  const activePlan = vocabPlansRows.find(
+    (p) => p.status === "active" || p.status === "approved"
+  );
+  const draftPlan = vocabPlansRows.find((p) => p.status === "draft");
+
+  // Fetch learning progress for active plan
+  let vocabWordsListened = 0;
+  if (activePlan) {
+    const progressRows = await db
+      .select()
+      .from(vocabularyProgress)
+      .where(
+        and(
+          eq(vocabularyProgress.planId, activePlan.id),
+          eq(vocabularyProgress.childId, childId),
+          eq(vocabularyProgress.listened, true)
+        )
+      );
+    vocabWordsListened = progressRows.length;
+  }
 
   const completedCount = assignedStories.filter(
     (s) => s.progress && isAtEnding(s.story.story_tree, s.progress.current_node)
@@ -102,7 +129,7 @@ export default async function ChildManagePage({
       </div>
 
       {/* Start Reader Mode CTA */}
-      <div className="rounded-2xl bg-gradient-to-r from-purple-500 to-indigo-500 p-6 text-white storybook-shadow sm:p-8">
+      <div className="rounded-2xl bg-gradient-to-r from-purple-500 to-indigo-500 p-6 text-white shadow-card sm:p-8">
         <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-xl font-bold sm:text-2xl">Reader Mode</h2>
@@ -124,17 +151,32 @@ export default async function ChildManagePage({
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4">
-        <div className="rounded-xl bg-card p-4 text-center storybook-shadow">
-          <p className="text-2xl font-bold">{assignedStories.length}</p>
-          <p className="text-sm text-muted-foreground">Assigned</p>
+        <div className="flex items-center gap-3 rounded-xl bg-card p-4 shadow-card">
+          <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
+            <BookOpen className="size-5 text-primary" />
+          </div>
+          <div>
+            <p className="text-2xl font-bold">{assignedStories.length}</p>
+            <p className="text-xs text-muted-foreground">Assigned</p>
+          </div>
         </div>
-        <div className="rounded-xl bg-card p-4 text-center storybook-shadow">
-          <p className="text-2xl font-bold">{inProgressCount}</p>
-          <p className="text-sm text-muted-foreground">In Progress</p>
+        <div className="flex items-center gap-3 rounded-xl bg-card p-4 shadow-card">
+          <div className="flex size-10 items-center justify-center rounded-lg bg-kid-yellow/20">
+            <Play className="size-5 text-kid-orange" />
+          </div>
+          <div>
+            <p className="text-2xl font-bold">{inProgressCount}</p>
+            <p className="text-xs text-muted-foreground">In Progress</p>
+          </div>
         </div>
-        <div className="rounded-xl bg-card p-4 text-center storybook-shadow">
-          <p className="text-2xl font-bold">{completedCount}</p>
-          <p className="text-sm text-muted-foreground">Completed</p>
+        <div className="flex items-center gap-3 rounded-xl bg-card p-4 shadow-card">
+          <div className="flex size-10 items-center justify-center rounded-lg bg-kid-green/20">
+            <CheckCircle className="size-5 text-kid-green" />
+          </div>
+          <div>
+            <p className="text-2xl font-bold">{completedCount}</p>
+            <p className="text-xs text-muted-foreground">Completed</p>
+          </div>
         </div>
       </div>
 
@@ -177,7 +219,7 @@ export default async function ChildManagePage({
               return (
                 <article
                   key={story.id}
-                  className="overflow-hidden rounded-2xl bg-card storybook-shadow"
+                  className="overflow-hidden rounded-2xl bg-card shadow-card"
                 >
                   <div className={`relative flex h-28 items-center justify-center bg-gradient-to-br ${gradient}`}>
                     <span className="text-4xl drop-shadow-md">{emoji}</span>
@@ -205,6 +247,60 @@ export default async function ChildManagePage({
               );
             })}
           </div>
+        )}
+      </section>
+
+      {/* Vocabulary Section */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-bold">Vocabulary</h2>
+          <Button
+            variant="outline"
+            className="rounded-xl"
+            render={<Link href={`/dashboard/${childId}/vocabulary`} />}
+          >
+            {activePlan ? "Manage Plan" : draftPlan ? "Review Draft" : "Create Plan"}
+          </Button>
+        </div>
+        {activePlan ? (
+          <div className="rounded-2xl bg-card p-6 shadow-card">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="font-bold">Vocabulary Plan</h3>
+              <span className="text-sm text-muted-foreground capitalize">{activePlan.status}</span>
+            </div>
+            <p className="text-sm text-muted-foreground mb-3">
+              {activePlan.weeksRequested} week{activePlan.weeksRequested > 1 ? "s" : ""} · {vocabWordsListened}/{activePlan.wordsTotal} words learned
+            </p>
+            <div className="h-2 rounded-full bg-muted overflow-hidden mb-3">
+              <div
+                className="h-full rounded-full bg-primary transition-all animate-progress-fill"
+                style={{ width: `${activePlan.wordsTotal > 0 ? Math.round((vocabWordsListened / activePlan.wordsTotal) * 100) : 0}%` }}
+              />
+            </div>
+            <Link
+              href={`/dashboard/${childId}/vocabulary`}
+              className="inline-block rounded-full bg-primary px-4 py-1.5 text-sm font-bold text-primary-foreground"
+            >
+              Go to Vocabulary
+            </Link>
+          </div>
+        ) : draftPlan ? (
+          <Link href={`/dashboard/${childId}/vocabulary`} className="block">
+            <div className="rounded-2xl bg-card p-6 shadow-card transition-all hover:-translate-y-1">
+              <p className="font-bold mb-2">Draft plan ready for review</p>
+              <p className="text-sm text-muted-foreground">Tap to review and approve the plan to start learning.</p>
+            </div>
+          </Link>
+        ) : (
+          <Link href={`/dashboard/${childId}/vocabulary`} className="block">
+            <div className="rounded-2xl bg-muted p-6 text-center transition-all hover:-translate-y-1">
+              <span className="text-4xl block mb-2">📖</span>
+              <p className="font-bold">Create a Vocabulary Plan</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                AI-generated weekly learning for {child.name}
+              </p>
+            </div>
+          </Link>
         )}
       </section>
     </div>
