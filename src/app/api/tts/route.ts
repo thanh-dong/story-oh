@@ -60,7 +60,7 @@ export async function POST(request: Request) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "tts-1",
+        model: "tts-1-hd",
         input: body.text,
         voice,
         response_format: "mp3",
