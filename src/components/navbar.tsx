@@ -11,28 +11,9 @@ import { ThemeToggle } from "@/components/theme-toggle";
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [credits, setCredits] = useState<number | null>(null);
-  const [hasChildren, setHasChildren] = useState(false);
   const { data: session } = useSession();
   const user = session?.user ?? null;
   const router = useRouter();
-
-  useEffect(() => {
-    if (!user) {
-      setHasChildren(false);
-      return;
-    }
-
-    fetch("/api/children")
-      .then((r) => r.json())
-      .then((data) => {
-        if (Array.isArray(data) && data.length > 0) {
-          setHasChildren(true);
-        } else {
-          setHasChildren(false);
-        }
-      })
-      .catch(() => setHasChildren(false));
-  }, [user]);
 
   useEffect(() => {
     if (!user || user.role === "admin") return;
@@ -90,7 +71,7 @@ export function Navbar() {
             Explore
           </Button>
 
-          {user && hasChildren && (
+          {user && (
             <Button
               variant="ghost"
               size="lg"
@@ -194,7 +175,7 @@ export function Navbar() {
               Explore
             </Button>
 
-            {user && hasChildren && (
+            {user && (
               <Button
                 variant="ghost"
                 size="lg"
