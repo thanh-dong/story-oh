@@ -3,7 +3,7 @@ import { Pool } from "pg";
 import * as schema from "./schema";
 
 const connectionString = (process.env.POSTGRES_URL ?? process.env.DATABASE_URL ?? "")
-  .replace(/[?&]sslmode=[^&]*/g, "");
+  .replace(/\?.*$/, "");
 
 const pool = new Pool({
   connectionString,
