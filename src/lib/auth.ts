@@ -8,8 +8,8 @@ const isDev = process.env.NODE_ENV === "development";
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, { provider: "pg" }),
-  secret: process.env.BETTER_AUTH_SECRET,
-  baseURL: process.env.BETTER_AUTH_URL,
+  secret: process.env.BETTER_AUTH_SECRET || "build-placeholder",
+  baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
   trustedOrigins: isDev ? ["*.trycloudflare.com"] : [],
   emailAndPassword: {
     enabled: true,
