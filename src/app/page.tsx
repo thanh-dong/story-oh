@@ -7,6 +7,8 @@ import { stories as storiesTable } from "@/lib/db/schema";
 import { desc, isNull } from "drizzle-orm";
 import { StoryCard } from "@/components/story-card";
 
+export const dynamic = "force-dynamic";
+
 export default async function Home() {
   const storyList = await db
     .select()

@@ -42,7 +42,7 @@ export async function POST(request: Request) {
   // Check cache first
   const cached = await getCached(body.text, voice);
   if (cached) {
-    return new Response(cached, {
+    return new Response(new Uint8Array(cached), {
       headers: {
         "Content-Type": "audio/mpeg",
         "Cache-Control": "public, max-age=86400",
@@ -85,7 +85,7 @@ export async function POST(request: Request) {
       cleanExpired().catch(() => {});
     }
 
-    return new Response(audioBuffer, {
+    return new Response(new Uint8Array(audioBuffer), {
       headers: {
         "Content-Type": "audio/mpeg",
         "Cache-Control": "public, max-age=86400",

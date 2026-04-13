@@ -6,6 +6,8 @@ import { StoryCard } from "@/components/story-card";
 import { Compass, BookOpen, Sparkles } from "lucide-react";
 import type { Child } from "@/lib/types";
 
+export const dynamic = "force-dynamic";
+
 export default async function ExplorePage() {
   const storyList = await db.select().from(storiesTable).where(isNull(storiesTable.created_by));
 

@@ -10,6 +10,8 @@ import { ChildCard } from "@/components/child-card";
 import { calculateAge } from "@/lib/children";
 import type { StoryTree } from "@/lib/types";
 
+export const dynamic = "force-dynamic";
+
 export default async function DashboardPage() {
   const session = await getSession();
   if (!session) redirect("/login");

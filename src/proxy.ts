@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   // Light check: does the session cookie exist?
   // Full session + role verification happens in the admin pages/API routes.
   const sessionCookie =

@@ -10,6 +10,8 @@ import { getGradient, getStoryEmoji } from "@/lib/gradients";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import { ShareStoryDialog } from "@/components/share-story-dialog";
 import type { Story, Child } from "@/lib/types";
+
+export const dynamic = "force-dynamic";
 import { DeleteStoryButton } from "./delete-story-button";
 
 export default async function LibraryPage() {
