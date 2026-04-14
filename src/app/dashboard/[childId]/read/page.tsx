@@ -4,7 +4,7 @@ import { ArrowRight } from "lucide-react";
 import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { childStories, stories, userStories, vocabularyPlans } from "@/lib/db/schema";
-import { and, eq } from "drizzle-orm";
+import { and, eq, or, isNull, inArray } from "drizzle-orm";
 import { verifyChildOwnership, calculateAge } from "@/lib/children";
 import { Badge } from "@/components/ui/badge";
 import { getGradient, getStoryEmoji } from "@/lib/gradients";
@@ -39,23 +39,42 @@ export default async function ChildReadingHubPage({
   const approvedPlan = vocabRows.find((p) => p.status === "approved");
   const vocabPlan = activePlan || approvedPlan;
 
-  const rows = await db
-    .select()
+  // Fetch all available stories: public + parent-created + explicitly assigned
+  const assignedRows = await db
+    .select({ storyId: childStories.storyId })
     .from(childStories)
-    .innerJoin(stories, eq(childStories.storyId, stories.id))
-    .leftJoin(
-      userStories,
+    .where(eq(childStories.childId, childId));
+  const assignedIds = assignedRows.map((r) => r.storyId);
+
+  const conditions = [
+    isNull(stories.created_by),
+    eq(stories.created_by, session.user.id),
+  ];
+  if (assignedIds.length > 0) {
+    conditions.push(inArray(stories.id, assignedIds));
+  }
+
+  const storyList = await db
+    .select()
+    .from(stories)
+    .where(or(...conditions));
+
+  const progressRows = await db
+    .select()
+    .from(userStories)
+    .where(
       and(
-        eq(userStories.story_id, childStories.storyId),
         eq(userStories.user_id, session.user.id),
         eq(userStories.child_id, childId)
       )
-    )
-    .where(eq(childStories.childId, childId));
+    );
+  const progressMap = new Map(
+    progressRows.map((r) => [r.story_id, r.progress])
+  );
 
-  const assignedStories = rows.map((row) => ({
-    story: row.stories as Story,
-    progress: row.user_stories?.progress ?? null,
+  const assignedStories = storyList.map((story) => ({
+    story: story as Story,
+    progress: progressMap.get(story.id) ?? null,
   }));
 
   // Sort: in-progress first, then not-started, then completed

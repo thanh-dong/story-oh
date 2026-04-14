@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { childStories, stories, userStories } from "@/lib/db/schema";
-import { and, eq } from "drizzle-orm";
+import { and, eq, or, isNull, inArray } from "drizzle-orm";
 import { verifyChildOwnership } from "@/lib/children";
 
 export async function GET(
@@ -20,24 +20,42 @@ export async function GET(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  const rows = await db
-    .select()
+  // All available stories: public + parent-created + explicitly assigned
+  const assignedRows = await db
+    .select({ storyId: childStories.storyId })
     .from(childStories)
-    .innerJoin(stories, eq(childStories.storyId, stories.id))
-    .leftJoin(
-      userStories,
+    .where(eq(childStories.childId, id));
+  const assignedIds = assignedRows.map((r) => r.storyId);
+
+  const conditions = [
+    isNull(stories.created_by),
+    eq(stories.created_by, session.user.id),
+  ];
+  if (assignedIds.length > 0) {
+    conditions.push(inArray(stories.id, assignedIds));
+  }
+
+  const storyList = await db
+    .select()
+    .from(stories)
+    .where(or(...conditions));
+
+  const progressRows = await db
+    .select()
+    .from(userStories)
+    .where(
       and(
-        eq(userStories.story_id, childStories.storyId),
         eq(userStories.user_id, session.user.id),
         eq(userStories.child_id, id)
       )
-    )
-    .where(eq(childStories.childId, id));
+    );
+  const progressMap = new Map(
+    progressRows.map((r) => [r.story_id, r.progress])
+  );
 
-  const result = rows.map((row) => ({
-    ...row.stories,
-    assignedAt: row.child_stories.assignedAt,
-    progress: row.user_stories?.progress ?? null,
+  const result = storyList.map((story) => ({
+    ...story,
+    progress: progressMap.get(story.id) ?? null,
   }));
 
   return NextResponse.json(result);
