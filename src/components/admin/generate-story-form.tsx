@@ -85,6 +85,7 @@ export function GenerateStoryForm({
         summary: data.summary,
         age_range: data.age_range,
         story_tree: data.story_tree,
+        cover_image: data.cover_image ?? null,
       });
     } catch (err) {
       const message = err instanceof Error
