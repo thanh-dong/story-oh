@@ -68,11 +68,11 @@ export default async function VocabularyLearningPage({
   const current = getCurrentPlanDay(plan.weekStartDate);
 
   const voiceMap: Record<string, string> = {
-    vi: "English_CaptivatingStoryteller",
-    en: "English_CaptivatingStoryteller",
-    de: "English_CaptivatingStoryteller",
+    vi: "Vietnamese_kindhearted_girl",
+    en: "English_PlayfulGirl",
+    de: "German_PlayfulMan",
   };
-  const voice = voiceMap[child.nativeLanguage] || "English_CaptivatingStoryteller";
+  const voice = voiceMap[child.nativeLanguage] || "Vietnamese_kindhearted_girl";
 
   return (
     <VocabularyLearningClient

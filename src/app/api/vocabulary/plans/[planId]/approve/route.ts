@@ -11,9 +11,9 @@ import { eq } from "drizzle-orm";
 import { setCache } from "@/lib/tts-cache";
 
 const VOICE_MAP: Record<string, string> = {
-  vi: "shimmer",
-  en: "nova",
-  de: "onyx",
+  vi: "Vietnamese_kindhearted_girl",
+  en: "English_PlayfulGirl",
+  de: "German_PlayfulMan",
 };
 
 export async function POST(
@@ -130,11 +130,11 @@ async function generateAllAudio(
   plan: typeof vocabularyPlans.$inferSelect,
   words: Array<typeof vocabularyWords.$inferSelect>
 ) {
-  const AI_BASE_URL = process.env.AI_BASE_URL;
-  const AI_API_KEY = process.env.AI_API_KEY;
-  if (!AI_BASE_URL || !AI_API_KEY) return;
+  const MINIMAX_API_KEY = process.env.MINIMAX_API_KEY;
+  const MINIMAX_TTS_MODEL = process.env.MINIMAX_TTS_MODEL || "speech-2.8-hd";
+  if (!MINIMAX_API_KEY) return;
 
-  const voice = VOICE_MAP[plan.nativeLanguage] || "nova";
+  const voice = VOICE_MAP[plan.nativeLanguage] || "Vietnamese_kindhearted_girl";
   const ttlMs = (plan.weeksRequested * 7 + 14) * 24 * 60 * 60 * 1000;
 
   let audioReadyCount = 0;
@@ -145,22 +145,41 @@ async function generateAllAudio(
 
     for (let attempt = 0; attempt < 3; attempt++) {
       try {
-        const ttsResponse = await fetch(`${AI_BASE_URL}/audio/speech`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${AI_API_KEY}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            model: "tts-1-hd",
-            input: word.promptSentence,
-            voice,
-            response_format: "mp3",
-          }),
-          signal: AbortSignal.timeout(30000),
-        });
+        const ttsResponse = await fetch(
+          "https://api.minimax.io/v1/t2a_v2",
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${MINIMAX_API_KEY}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              model: MINIMAX_TTS_MODEL,
+              text: word.promptSentence,
+              stream: false,
+              language_boost: "Vietnamese",
+              voice_setting: {
+                voice_id: voice,
+                speed: 0.95,
+                vol: 1.0,
+                pitch: 0,
+                emotion: "happy",
+              },
+              audio_setting: {
+                sample_rate: 32000,
+                bitrate: 128000,
+                format: "mp3",
+                channel: 1,
+              },
+            }),
+            signal: AbortSignal.timeout(30000),
+          }
+        );
 
-        if (!ttsResponse.ok) {
+        const json = await ttsResponse.json();
+
+        if (!ttsResponse.ok || json.base_resp?.status_code !== 0) {
+          console.error("[TTS] Vocab audio error:", JSON.stringify(json));
           if (attempt < 2) {
             await new Promise((r) =>
               setTimeout(r, 1000 * Math.pow(2, attempt))
@@ -170,7 +189,7 @@ async function generateAllAudio(
           break;
         }
 
-        const audioBuffer = Buffer.from(await ttsResponse.arrayBuffer());
+        const audioBuffer = Buffer.from(json.data.audio, "hex");
         await setCache(word.promptSentence, voice, audioBuffer, ttlMs);
 
         const { createHash } = await import("crypto");

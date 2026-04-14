@@ -37,7 +37,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const voice = body.voice ?? "English_CaptivatingStoryteller";
+  const voice = body.voice ?? "Vietnamese_kindhearted_girl";
   const languageBoost = body.language_boost ?? "Vietnamese";
 
   // Check cache first
