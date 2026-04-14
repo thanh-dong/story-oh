@@ -54,6 +54,7 @@ export interface GenerateStoryResponse {
   summary: string;
   age_range: string;
   story_tree: StoryTree;
+  cover_image?: string | null;
 }
 
 export interface Child {

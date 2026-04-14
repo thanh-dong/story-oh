@@ -1,11 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import {
   Select,
   SelectContent,
@@ -13,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Loader2, ImagePlus } from "lucide-react";
 import { TreeEditor } from "./tree-editor";
 import type { StoryTree } from "@/lib/types";
 
@@ -56,6 +56,27 @@ export function StoryForm({ initialData, onSave, saving }: StoryFormProps) {
   const [storyTree, setStoryTree] = useState<StoryTree>(
     initialData?.story_tree ?? defaultStoryTree
   );
+  const [generatingCover, setGeneratingCover] = useState(false);
+
+  const handleGenerateCover = useCallback(async () => {
+    if (!title.trim() || !summary.trim()) return;
+    setGeneratingCover(true);
+    try {
+      const res = await fetch("/api/stories/generate-cover", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, summary }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.cover_image) setCoverImage(data.cover_image);
+      }
+    } catch {
+      // silently fail
+    } finally {
+      setGeneratingCover(false);
+    }
+  }, [title, summary]);
 
   const handleSave = () => {
     onSave({
@@ -141,13 +162,38 @@ export function StoryForm({ initialData, onSave, saving }: StoryFormProps) {
 
         <div className="space-y-2">
           <Label htmlFor="cover-image">Cover Image URL</Label>
-          <Input
-            id="cover-image"
-            value={coverImage}
-            onChange={(e) => setCoverImage(e.target.value)}
-            placeholder="https://..."
-            className="rounded-xl"
-          />
+          <div className="flex gap-2">
+            <Input
+              id="cover-image"
+              value={coverImage}
+              onChange={(e) => setCoverImage(e.target.value)}
+              placeholder="https://..."
+              className="rounded-xl"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleGenerateCover}
+              disabled={generatingCover || !title.trim() || !summary.trim()}
+              className="shrink-0 rounded-xl"
+            >
+              {generatingCover ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <ImagePlus className="size-4" />
+              )}
+              <span className="ml-1.5 hidden sm:inline">
+                {generatingCover ? "Generating..." : "Generate"}
+              </span>
+            </Button>
+          </div>
+          {coverImage && (
+            <img
+              src={coverImage}
+              alt="Cover preview"
+              className="mt-2 h-32 w-full rounded-xl object-cover"
+            />
+          )}
         </div>
 
         <div className="flex items-center gap-2.5">

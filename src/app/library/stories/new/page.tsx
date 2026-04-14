@@ -57,7 +57,7 @@ export default function UserCreateStoryPage() {
         summary: generatedData.summary,
         age_range: generatedData.age_range,
         price: 0,
-        cover_image: null,
+        cover_image: generatedData.cover_image ?? null,
         require_login: false,
         story_tree: generatedData.story_tree,
       }

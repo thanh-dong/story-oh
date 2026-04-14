@@ -5,6 +5,7 @@ import { user, creditTransactions } from "@/lib/db/schema";
 import { eq, sql } from "drizzle-orm";
 import { validateGenerateRequest, generateStory } from "@/lib/story-generation";
 import { estimateCost, calculateActualCost } from "@/lib/credits";
+import { generateCoverImage } from "@/lib/cover-image";
 
 export async function POST(request: Request) {
   const session = await getSession();
@@ -89,11 +90,15 @@ export async function POST(request: Request) {
     },
   });
 
+  // Generate cover image (non-blocking failure — story still works without cover)
+  const coverImage = await generateCoverImage(result.data.title, result.data.summary);
+
   return NextResponse.json({
     title: result.data.title,
     summary: result.data.summary,
     age_range: result.data.age_range,
     story_tree: result.data.story_tree,
+    cover_image: coverImage,
     credits_charged: actualCost,
     credits_remaining: newBalance,
   });

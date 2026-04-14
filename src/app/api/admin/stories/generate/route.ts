@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { validateGenerateRequest, generateStory } from "@/lib/story-generation";
+import { generateCoverImage } from "@/lib/cover-image";
 
 export async function POST(request: Request) {
   let body: unknown;
@@ -19,10 +20,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: result.error }, { status: result.status });
   }
 
+  const coverImage = await generateCoverImage(result.data.title, result.data.summary);
+
   return NextResponse.json({
     title: result.data.title,
     summary: result.data.summary,
     age_range: result.data.age_range,
     story_tree: result.data.story_tree,
+    cover_image: coverImage,
   });
 }
