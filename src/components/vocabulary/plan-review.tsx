@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { ConfirmDialog, useConfirmDialog } from "@/components/ui/confirm-dialog";
 import type { VocabularyPlan, VocabularyWordEntry } from "@/lib/vocabulary-types";
 import { X, Pencil, Check, Plus } from "lucide-react";
 
@@ -31,6 +32,7 @@ export function PlanReview({
   const [plan, setPlan] = useState<VocabularyPlan>(initialPlan);
   const [loading, setLoading] = useState<"approve" | "regenerate" | "save" | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [confirmProps, confirmDialog] = useConfirmDialog();
   const [editingTopic, setEditingTopic] = useState<string | null>(null);
   const [topicValue, setTopicValue] = useState("");
   const [addingWord, setAddingWord] = useState<string | null>(null);
@@ -140,10 +142,12 @@ export function PlanReview({
   }
 
   async function handleRegenerate() {
-    if (
-      !confirm("Regenerating will cost additional credits. Continue?")
-    )
-      return;
+    const ok = await confirmDialog({
+      title: "Regenerate vocabulary plan?",
+      description: "This will generate a new plan and cost additional credits. The current plan will be replaced.",
+      confirmLabel: "Regenerate",
+    });
+    if (!ok) return;
 
     setLoading("regenerate");
     setError(null);
@@ -167,6 +171,7 @@ export function PlanReview({
 
   return (
     <div className="space-y-6">
+      <ConfirmDialog {...confirmProps} />
       {plan.weeks.map((week) => (
         <div key={week.weekNumber} className="space-y-3">
           <h3 className="font-bold text-lg">Week {week.weekNumber}</h3>

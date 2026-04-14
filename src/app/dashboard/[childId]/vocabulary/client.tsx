@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog, useConfirmDialog } from "@/components/ui/confirm-dialog";
 import { CreatePlanDialog } from "@/components/vocabulary/create-plan-dialog";
 import { PlanReview } from "@/components/vocabulary/plan-review";
 import { PlanProgress } from "@/components/vocabulary/plan-progress";
@@ -39,9 +40,16 @@ export function VocabularyManageClient({
 }: VocabularyManageClientProps) {
   const router = useRouter();
   const [cancelling, setCancelling] = useState(false);
+  const [confirmProps, confirm] = useConfirmDialog();
 
   async function handleCancel(planId: string) {
-    if (!confirm("Are you sure you want to cancel this plan?")) return;
+    const ok = await confirm({
+      title: "Cancel vocabulary plan?",
+      description: "This will cancel the plan and it cannot be undone. Your credits will not be refunded.",
+      confirmLabel: "Cancel Plan",
+      variant: "destructive",
+    });
+    if (!ok) return;
     setCancelling(true);
     try {
       await fetch(`/api/vocabulary/plans/${planId}/cancel`, {
@@ -55,10 +63,13 @@ export function VocabularyManageClient({
     }
   }
 
+  const confirmDialog = <ConfirmDialog {...confirmProps} loading={cancelling} />;
+
   // Show active/approved plan progress + full plan details
   if (activePlan) {
     return (
       <div className="space-y-6">
+        {confirmDialog}
         <PlanProgress
           planId={activePlan.id}
           plan={activePlan.plan}
@@ -101,6 +112,7 @@ export function VocabularyManageClient({
   if (draftPlan) {
     return (
       <div className="space-y-6">
+        {confirmDialog}
         <h2 className="text-lg font-bold">Review & Edit Plan</h2>
         <p className="text-sm text-muted-foreground">
           Click a topic name to rename it. Hover a word to remove it. Click + Add to add words.
