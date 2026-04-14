@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -97,6 +98,25 @@ export function GenerateStoryForm({
     } finally {
       setLoading(false);
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-6 rounded-2xl bg-card py-24 shadow-card">
+        <div className="relative">
+          <div className="absolute inset-0 rounded-full bg-primary/20 animate-ping" />
+          <div className="relative flex size-16 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/80">
+            <Loader2 className="size-8 animate-spin text-white" />
+          </div>
+        </div>
+        <div className="text-center space-y-2">
+          <p className="text-lg font-bold">Creating your story...</p>
+          <p className="text-sm text-muted-foreground max-w-xs">
+            Writing the story, building choices, and generating the cover image. This may take a minute.
+          </p>
+        </div>
+      </div>
+    );
   }
 
   return (

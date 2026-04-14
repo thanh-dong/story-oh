@@ -8,13 +8,6 @@ import {
   creditTransactions,
 } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
-import { setCache } from "@/lib/tts-cache";
-
-const VOICE_MAP: Record<string, string> = {
-  vi: "Vietnamese_kindhearted_girl",
-  en: "English_PlayfulGirl",
-  de: "German_PlayfulMan",
-};
 
 export async function POST(
   request: Request,
@@ -121,122 +114,12 @@ export async function POST(
     throw err;
   }
 
-  // Activate the plan immediately — audio pre-generation is best-effort cache warm-up.
-  // Words can always be played on-demand via /api/tts.
+  // Activate immediately — audio is generated on-demand when child plays each word.
+  // No background batch: Vercel serverless kills the function after response is sent.
   await db
     .update(vocabularyPlans)
     .set({ status: "active", updatedAt: new Date().toISOString() })
     .where(eq(vocabularyPlans.id, planId));
 
-  generateAllAudio(plan, insertedWords).catch(console.error);
-
   return NextResponse.json({ ok: true, status: "active" });
-}
-
-async function generateAllAudio(
-  plan: typeof vocabularyPlans.$inferSelect,
-  words: Array<typeof vocabularyWords.$inferSelect>
-) {
-  const MINIMAX_API_KEY = process.env.MINIMAX_API_KEY;
-  const MINIMAX_TTS_MODEL = process.env.MINIMAX_TTS_MODEL || "speech-2.8-hd";
-  if (!MINIMAX_API_KEY) return;
-
-  const voice = VOICE_MAP[plan.nativeLanguage] || "Vietnamese_kindhearted_girl";
-  const ttlMs = (plan.weeksRequested * 7 + 14) * 24 * 60 * 60 * 1000;
-
-  let audioReadyCount = 0;
-  let failedCount = 0;
-
-  for (const word of words) {
-    let success = false;
-
-    for (let attempt = 0; attempt < 3; attempt++) {
-      try {
-        const ttsResponse = await fetch(
-          "https://api.minimax.io/v1/t2a_v2",
-          {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${MINIMAX_API_KEY}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              model: MINIMAX_TTS_MODEL,
-              text: word.promptSentence,
-              stream: false,
-              language_boost: "Vietnamese",
-              voice_setting: {
-                voice_id: voice,
-                speed: 0.95,
-                vol: 1.0,
-                pitch: 0,
-                emotion: "happy",
-              },
-              audio_setting: {
-                sample_rate: 32000,
-                bitrate: 128000,
-                format: "mp3",
-                channel: 1,
-              },
-            }),
-            signal: AbortSignal.timeout(30000),
-          }
-        );
-
-        const json = await ttsResponse.json();
-
-        if (!ttsResponse.ok || json.base_resp?.status_code !== 0) {
-          console.error("[TTS] Vocab audio error:", JSON.stringify(json));
-          if (attempt < 2) {
-            await new Promise((r) =>
-              setTimeout(r, 1000 * Math.pow(2, attempt))
-            );
-            continue;
-          }
-          break;
-        }
-
-        const audioBuffer = Buffer.from(json.data.audio, "hex");
-        await setCache(word.promptSentence, voice, audioBuffer, ttlMs);
-
-        const { createHash } = await import("crypto");
-        const cacheKey = createHash("sha256")
-          .update(`${voice}:${word.promptSentence}`)
-          .digest("hex");
-        await db
-          .update(vocabularyWords)
-          .set({
-            audioUrl: cacheKey,
-            audioGeneratedAt: new Date().toISOString(),
-          })
-          .where(eq(vocabularyWords.id, word.id));
-
-        audioReadyCount++;
-        success = true;
-        break;
-      } catch {
-        if (attempt < 2) {
-          await new Promise((r) =>
-            setTimeout(r, 1000 * Math.pow(2, attempt))
-          );
-        }
-      }
-    }
-
-    if (!success) failedCount++;
-
-    await db
-      .update(vocabularyPlans)
-      .set({
-        wordsAudioReady: audioReadyCount,
-        updatedAt: new Date().toISOString(),
-      })
-      .where(eq(vocabularyPlans.id, plan.id));
-  }
-
-  // Plan is already active — just log the result.
-  // Audio is best-effort; words play on-demand via /api/tts if pre-gen fails.
-  if (failedCount > 0) {
-    console.warn(`[Vocab Audio] ${failedCount}/${words.length} words failed audio pre-generation for plan ${plan.id}`);
-  }
 }

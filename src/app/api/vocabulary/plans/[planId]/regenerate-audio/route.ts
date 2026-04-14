@@ -11,6 +11,9 @@ const VOICE_MAP: Record<string, string> = {
   de: "German_PlayfulMan",
 };
 
+// Max words per request — keeps within Vercel's 10s function timeout
+const BATCH_SIZE = 3;
+
 // GET — return audio status for the plan
 export async function GET(
   _request: Request,
@@ -49,7 +52,8 @@ export async function GET(
   return NextResponse.json({ total, ready, missing });
 }
 
-// POST — regenerate audio for words missing it
+// POST — regenerate audio for a small batch of words missing audio.
+// Client should call repeatedly until remaining === 0.
 export async function POST(
   _request: Request,
   { params }: { params: Promise<{ planId: string }> }
@@ -80,24 +84,26 @@ export async function POST(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  const missingWords = await db
+  const allMissing = await db
     .select()
     .from(vocabularyWords)
     .where(
       and(eq(vocabularyWords.planId, planId), isNull(vocabularyWords.audioUrl))
     );
 
-  if (missingWords.length === 0) {
-    return NextResponse.json({ regenerated: 0, failed: 0 });
+  if (allMissing.length === 0) {
+    return NextResponse.json({ regenerated: 0, failed: 0, remaining: 0 });
   }
 
+  // Process only a small batch to stay within Vercel timeout
+  const batch = allMissing.slice(0, BATCH_SIZE);
   const voice = VOICE_MAP[plan.nativeLanguage] || "Vietnamese_kindhearted_girl";
   const ttlMs = (plan.weeksRequested * 7 + 14) * 24 * 60 * 60 * 1000;
 
   let regenerated = 0;
   let failed = 0;
 
-  for (const word of missingWords) {
+  for (const word of batch) {
     try {
       const ttsResponse = await fetch("https://api.minimax.io/v1/t2a_v2", {
         method: "POST",
@@ -124,12 +130,13 @@ export async function POST(
             channel: 1,
           },
         }),
-        signal: AbortSignal.timeout(30000),
+        signal: AbortSignal.timeout(8000),
       });
 
       const json = await ttsResponse.json();
 
       if (!ttsResponse.ok || json.base_resp?.status_code !== 0) {
+        console.error("[TTS] Regen error:", JSON.stringify(json));
         failed++;
         continue;
       }
@@ -168,5 +175,7 @@ export async function POST(
     .set({ wordsAudioReady: audioReady, updatedAt: new Date().toISOString() })
     .where(eq(vocabularyPlans.id, planId));
 
-  return NextResponse.json({ regenerated, failed });
+  const remaining = allMissing.length - regenerated;
+
+  return NextResponse.json({ regenerated, failed, remaining });
 }

@@ -80,14 +80,24 @@ export function PlanProgress({
   async function handleRegenerate() {
     setRegenerating(true);
     setRegenResult(null);
+    let totalRegenerated = 0;
+    let totalFailed = 0;
+
     try {
-      const res = await fetch(`/api/vocabulary/plans/${planId}/regenerate-audio`, {
-        method: "POST",
-      });
-      if (res.ok) {
+      // Loop in batches until no words remaining
+      while (true) {
+        const res = await fetch(`/api/vocabulary/plans/${planId}/regenerate-audio`, {
+          method: "POST",
+        });
+        if (!res.ok) break;
+
         const result = await res.json();
-        setRegenResult(result);
+        totalRegenerated += result.regenerated;
+        totalFailed += result.failed;
+        setRegenResult({ regenerated: totalRegenerated, failed: totalFailed });
         fetchAudioStatus();
+
+        if (result.remaining <= 0) break;
       }
     } catch { /* ignore */ }
     setRegenerating(false);
