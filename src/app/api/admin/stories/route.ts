@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { stories } from "@/lib/db/schema";
-import { desc } from "drizzle-orm";
+import { desc, isNull } from "drizzle-orm";
 
 async function requireAdmin() {
   const session = await getSession();
@@ -16,7 +16,7 @@ export async function GET() {
   if (!(await requireAdmin())) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
-  const data = await db.select().from(stories).orderBy(desc(stories.created_at));
+  const data = await db.select().from(stories).where(isNull(stories.created_by)).orderBy(desc(stories.created_at));
   return NextResponse.json(data);
 }
 
