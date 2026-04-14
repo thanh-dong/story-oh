@@ -124,6 +124,7 @@ Rules:
 - Target approximately ${nodeCount} total nodes
 - Include between ${req.minBranches} and ${req.maxBranches} branching points (nodes with 2+ choices)
 - Each choice should lead to meaningfully different story paths
+- Story text and choice labels MUST be aligned and consistent: choices must logically follow from the current scene, and the next node's text must be a natural continuation of the chosen option — no contradictions or unrelated jumps
 - ${req.isForChildren ? "Content must be safe and appropriate for children" : "Content should be appropriate for the target age group"}
 - Difficulty "${req.difficulty}" means: ${req.difficulty === "easy" ? "simple vocabulary, short sentences, straightforward plot" : req.difficulty === "medium" ? "moderate vocabulary, varied sentence length, some complexity" : "rich vocabulary, complex sentences, nuanced plot"}`;
 
@@ -169,7 +170,7 @@ export async function generateStory(
         ],
         response_format: { type: "json_object" },
         temperature: 0.8,
-        max_tokens: 4096,
+        max_completion_tokens: 4096,
       }),
       signal: AbortSignal.timeout(60000),
     });

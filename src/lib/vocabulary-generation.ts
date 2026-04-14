@@ -196,7 +196,7 @@ export async function generateVocabularyPlan(params: {
         ],
         response_format: { type: "json_object" },
         temperature: 0.8,
-        max_tokens: 8192,
+        max_completion_tokens: 8192,
       }),
       signal: AbortSignal.timeout(120000),
     });

@@ -10,7 +10,7 @@ export async function POST(request: Request) {
   }
 
   const MINIMAX_API_KEY = process.env.MINIMAX_API_KEY;
-  const MINIMAX_TTS_MODEL = process.env.MINIMAX_TTS_MODEL || "speech-2.6-hd";
+  const MINIMAX_TTS_MODEL = process.env.MINIMAX_TTS_MODEL || "speech-2.8-hd";
 
   if (!MINIMAX_API_KEY) {
     return NextResponse.json(
@@ -52,7 +52,7 @@ export async function POST(request: Request) {
     });
   }
 
-  // Generate via MiniMax Speech 2.6 HD
+  // Generate via MiniMax TTS
   try {
     const ttsResponse = await fetch(
       "https://api.minimax.io/v1/t2a_v2",
@@ -96,6 +96,7 @@ export async function POST(request: Request) {
     }
 
     if (json.base_resp?.status_code !== 0) {
+      console.error("[TTS] MiniMax error:", JSON.stringify(json));
       return NextResponse.json(
         { error: `TTS error: ${json.base_resp?.status_msg ?? "unknown"}` },
         { status: 500 }
