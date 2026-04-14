@@ -4,7 +4,7 @@ import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { stories as storiesTable } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
-import { getGradient, getStoryEmoji } from "@/lib/gradients";
+import { StoryCover } from "@/components/story-cover";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { StoryTree } from "@/lib/types";
@@ -47,22 +47,18 @@ export default async function StoryDetailPage({
     }
   }
 
-  const gradient = getGradient(story.title);
-  const emoji = getStoryEmoji(story.title);
   const totalChoices = countChoices(story.story_tree);
   const totalEndings = countEndings(story.story_tree);
   const totalPages = Object.keys(story.story_tree).length;
 
   return (
     <div className="mx-auto max-w-2xl animate-fade-up pb-12">
-      {/* Gradient cover */}
-      <div
-        className={`relative flex h-48 w-full items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br ${gradient} storybook-shadow sm:h-64`}
-      >
-        <span className="text-7xl drop-shadow-lg sm:text-8xl" aria-hidden="true">
-          {emoji}
-        </span>
-      </div>
+      <StoryCover
+        title={story.title}
+        coverImage={story.cover_image}
+        heightClass="h-48 sm:h-64 rounded-2xl storybook-shadow"
+        emojiClass="text-7xl drop-shadow-lg sm:text-8xl"
+      />
 
       {/* Story info */}
       <div className="mt-8 space-y-6">

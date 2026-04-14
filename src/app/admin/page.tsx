@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { getGradient, getStoryEmoji } from "@/lib/gradients";
+import { StoryCover } from "@/components/story-cover";
 import type { Story } from "@/lib/types";
 
 export default function AdminPage() {
@@ -105,21 +105,12 @@ export default function AdminPage() {
       ) : stories.length > 0 ? (
         <div className="stagger-children grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {stories.map((story) => {
-            const gradient = getGradient(story.title);
-            const emoji = getStoryEmoji(story.title);
-
             return (
               <article
                 key={story.id}
                 className="group relative overflow-hidden rounded-2xl bg-card storybook-shadow transition-all duration-300 hover:-translate-y-0.5 hover:storybook-shadow-lg"
               >
-                {/* Cover */}
-                <div
-                  className={`relative flex h-28 items-center justify-center bg-gradient-to-br ${gradient}`}
-                >
-                  <span className="text-4xl drop-shadow-md" aria-hidden="true">
-                    {emoji}
-                  </span>
+                <StoryCover title={story.title} coverImage={story.cover_image} heightClass="h-28">
                   <Badge className="absolute left-3 top-3 border-0 bg-white/25 text-white backdrop-blur-sm text-xs font-bold">
                     {story.age_range}
                   </Badge>
@@ -128,7 +119,7 @@ export default function AdminPage() {
                       &#x1F512;
                     </Badge>
                   )}
-                </div>
+                </StoryCover>
 
                 {/* Info */}
                 <div className="p-4">

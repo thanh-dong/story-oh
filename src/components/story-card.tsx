@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
-import { getGradient, getStoryEmoji } from "@/lib/gradients";
+import { StoryCover } from "@/components/story-cover";
 import { ShareStoryDialog } from "@/components/share-story-dialog";
 import type { Story, Child } from "@/lib/types";
 
@@ -13,7 +13,6 @@ interface StoryCardProps {
 }
 
 export function StoryCard({ story, childrenList, assignedChildIds }: StoryCardProps) {
-  const gradient = getGradient(story.title);
   const nodeCount = Object.keys(story.story_tree).length;
   const endingCount = Object.values(story.story_tree).filter(
     (n) => n.choices.length === 0
@@ -22,17 +21,16 @@ export function StoryCard({ story, childrenList, assignedChildIds }: StoryCardPr
   return (
     <article className="group relative h-full overflow-hidden rounded-2xl bg-card shadow-card transition-all duration-200 hover:-translate-y-1 hover:shadow-elevated">
       <Link href={`/story/${story.id}`} className="block">
-        {/* Gradient cover */}
-        <div
-          className={`relative h-40 w-full bg-gradient-to-br ${gradient} flex items-center justify-center sm:h-44`}
+        <StoryCover
+          title={story.title}
+          coverImage={story.cover_image}
+          heightClass="h-40 sm:h-44"
+          emojiClass="text-5xl drop-shadow-md transition-transform duration-300 group-hover:scale-110 sm:text-6xl"
         >
-          <span className="text-5xl drop-shadow-md transition-transform duration-300 group-hover:scale-110 sm:text-6xl" aria-hidden="true">
-            {getStoryEmoji(story.title)}
-          </span>
           <Badge className="absolute right-3 top-3 bg-white/25 text-white backdrop-blur-sm border-0 text-xs font-bold">
             {story.age_range}
           </Badge>
-        </div>
+        </StoryCover>
 
         {/* Content */}
         <div className="space-y-2 p-4 sm:p-5">

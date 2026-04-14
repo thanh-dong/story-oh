@@ -7,7 +7,7 @@ import { childStories, stories, userStories, vocabularyPlans } from "@/lib/db/sc
 import { and, eq, or, isNull, inArray } from "drizzle-orm";
 import { verifyChildOwnership, calculateAge } from "@/lib/children";
 import { Badge } from "@/components/ui/badge";
-import { getGradient, getStoryEmoji } from "@/lib/gradients";
+import { StoryCover } from "@/components/story-cover";
 import type { Story, StoryTree } from "@/lib/types";
 
 function isAtEnding(storyTree: StoryTree, currentNode: string): boolean {
@@ -149,8 +149,6 @@ export default async function ChildReadingHubPage({
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
           {sorted.map(({ story, progress }) => {
-            const gradient = getGradient(story.title);
-            const emoji = getStoryEmoji(story.title);
             const isDone = progress && isAtEnding(story.story_tree, progress.current_node);
             const isReading = progress && !isDone;
 
@@ -161,14 +159,18 @@ export default async function ChildReadingHubPage({
                 className="group block"
               >
                 <article className="relative overflow-hidden rounded-2xl bg-card shadow-card transition-all duration-200 hover:-translate-y-1 hover:shadow-elevated">
-                  <div className={`relative flex h-28 items-center justify-center bg-gradient-to-br ${gradient}`}>
-                    <span className="text-4xl drop-shadow-md transition-transform duration-300 group-hover:scale-110">{emoji}</span>
+                  <StoryCover
+                    title={story.title}
+                    coverImage={story.cover_image}
+                    heightClass="h-28"
+                    emojiClass="text-4xl drop-shadow-md transition-transform duration-300 group-hover:scale-110"
+                  >
                     {isDone && (
                       <Badge className="absolute right-3 top-3 border-0 bg-white/25 text-white backdrop-blur-sm text-xs font-bold">
                         &#x2713; Done
                       </Badge>
                     )}
-                  </div>
+                  </StoryCover>
                   <div className="p-4">
                     <h3 className="font-bold">{story.title}</h3>
                     {isReading && (

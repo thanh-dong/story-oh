@@ -6,7 +6,7 @@ import { stories as storiesTable, userStories, children as childrenTable, childS
 import { and, eq, isNull, inArray } from "drizzle-orm";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { getGradient, getStoryEmoji } from "@/lib/gradients";
+import { StoryCover } from "@/components/story-cover";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import { ShareStoryDialog } from "@/components/share-story-dialog";
 import type { Story, Child } from "@/lib/types";
@@ -88,8 +88,6 @@ export default async function LibraryPage() {
         {myStories.length > 0 ? (
           <div className="stagger-children grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {myStories.map((story) => {
-              const gradient = getGradient(story.title);
-              const emoji = getStoryEmoji(story.title);
               const nodeCount = Object.keys(story.story_tree).length;
 
               return (
@@ -98,12 +96,11 @@ export default async function LibraryPage() {
                   className="group relative overflow-hidden rounded-2xl bg-card storybook-shadow transition-all duration-300 hover:-translate-y-0.5 hover:storybook-shadow-lg"
                 >
                   <Link href={`/story/${story.id}`}>
-                    <div className={`relative flex h-28 items-center justify-center bg-gradient-to-br ${gradient}`}>
-                      <span className="text-4xl drop-shadow-md" aria-hidden="true">{emoji}</span>
+                    <StoryCover title={story.title} coverImage={story.cover_image} heightClass="h-28">
                       <Badge className="absolute left-3 top-3 border-0 bg-white/25 text-white backdrop-blur-sm text-xs font-bold">
                         {story.age_range}
                       </Badge>
-                    </div>
+                    </StoryCover>
                   </Link>
 
                   {userChildren.length > 0 && (
@@ -165,8 +162,6 @@ export default async function LibraryPage() {
           <div className="stagger-children grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {readingList.map((us) => {
               const story = us.story;
-              const gradient = getGradient(story.title);
-              const emoji = getStoryEmoji(story.title);
               const choicesMade = us.progress?.history?.length ?? 0;
               const currentNode = story.story_tree?.[us.progress?.current_node ?? ""];
               const isAtEnding = currentNode && currentNode.choices.length === 0;
@@ -180,16 +175,18 @@ export default async function LibraryPage() {
                     href={`/story/${story.id}/read`}
                     className="block"
                   >
-                    <div className={`relative flex h-36 items-center justify-center bg-gradient-to-br ${gradient} sm:h-40`}>
-                      <span className="text-5xl drop-shadow-md transition-transform duration-300 group-hover:scale-110" aria-hidden="true">
-                        {emoji}
-                      </span>
+                    <StoryCover
+                      title={story.title}
+                      coverImage={story.cover_image}
+                      heightClass="h-36 sm:h-40"
+                      emojiClass="text-5xl drop-shadow-md transition-transform duration-300 group-hover:scale-110"
+                    >
                       {isAtEnding && (
                         <Badge className="absolute right-3 top-3 border-0 bg-white/25 text-white backdrop-blur-sm text-xs font-bold">
                           Completed
                         </Badge>
                       )}
-                    </div>
+                    </StoryCover>
 
                     <div className="p-4 sm:p-5">
                       <h3 className="text-lg font-bold leading-snug tracking-tight">{story.title}</h3>

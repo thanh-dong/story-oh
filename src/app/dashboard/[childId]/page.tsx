@@ -7,7 +7,7 @@ import { and, eq, or, isNull, inArray } from "drizzle-orm";
 import { verifyChildOwnership, calculateAge } from "@/lib/children";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { getGradient, getStoryEmoji } from "@/lib/gradients";
+import { StoryCover } from "@/components/story-cover";
 import type { Story, StoryTree } from "@/lib/types";
 import { ArrowLeft, BookOpen, CheckCircle, Pencil, Play, Trash2 } from "lucide-react";
 
@@ -230,8 +230,6 @@ export default async function ChildManagePage({
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {assignedStories.map(({ story, progress }) => {
-              const gradient = getGradient(story.title);
-              const emoji = getStoryEmoji(story.title);
               const isCompleted = progress && isAtEnding(story.story_tree, progress.current_node);
               const isInProgress = progress && !isCompleted;
 
@@ -240,8 +238,7 @@ export default async function ChildManagePage({
                   key={story.id}
                   className="overflow-hidden rounded-2xl bg-card shadow-card"
                 >
-                  <div className={`relative flex h-28 items-center justify-center bg-gradient-to-br ${gradient}`}>
-                    <span className="text-4xl drop-shadow-md">{emoji}</span>
+                  <StoryCover title={story.title} coverImage={story.cover_image} heightClass="h-28">
                     {isCompleted && (
                       <Badge className="absolute right-3 top-3 border-0 bg-white/25 text-white backdrop-blur-sm text-xs font-bold">
                         &#x2713; Done
@@ -252,7 +249,7 @@ export default async function ChildManagePage({
                         Reading
                       </Badge>
                     )}
-                  </div>
+                  </StoryCover>
                   <div className="p-4">
                     <h3 className="font-bold">{story.title}</h3>
                     <p className="mt-1 line-clamp-1 text-sm text-muted-foreground">{story.summary}</p>

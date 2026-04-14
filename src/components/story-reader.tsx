@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, BookOpen, RotateCcw, Volume2, VolumeX, Loader2 } from "lucide-react";
-import { getGradient, getStoryEmoji } from "@/lib/gradients";
+import { StoryCover } from "@/components/story-cover";
 import { Button } from "@/components/ui/button";
 import type { Story } from "@/lib/types";
 
@@ -38,8 +38,6 @@ export function StoryReader({
 
   const node = story.story_tree[currentNode];
   const isEnding = !node?.choices || node.choices.length === 0;
-  const gradient = getGradient(story.title);
-  const emoji = getStoryEmoji(story.title);
 
   const saveProgress = useCallback(
     async (nodeId: string, newHistory: string[]) => {
@@ -181,14 +179,13 @@ export function StoryReader({
         </div>
       </div>
 
-      {/* Gradient header */}
-      <div
-        className={`relative mb-10 flex h-36 w-full items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br ${gradient} storybook-shadow sm:h-44`}
-      >
-        <span className="text-6xl drop-shadow-lg sm:text-7xl" aria-hidden="true">
-          {emoji}
-        </span>
-      </div>
+      {/* Cover header */}
+      <StoryCover
+        title={story.title}
+        coverImage={story.cover_image}
+        heightClass="mb-10 h-36 sm:h-44 rounded-2xl storybook-shadow"
+        emojiClass="text-6xl drop-shadow-lg sm:text-7xl"
+      />
 
       {/* Story content */}
       <div

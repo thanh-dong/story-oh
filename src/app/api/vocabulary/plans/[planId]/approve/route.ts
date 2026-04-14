@@ -121,9 +121,16 @@ export async function POST(
     throw err;
   }
 
+  // Activate the plan immediately — audio pre-generation is best-effort cache warm-up.
+  // Words can always be played on-demand via /api/tts.
+  await db
+    .update(vocabularyPlans)
+    .set({ status: "active", updatedAt: new Date().toISOString() })
+    .where(eq(vocabularyPlans.id, planId));
+
   generateAllAudio(plan, insertedWords).catch(console.error);
 
-  return NextResponse.json({ ok: true, status: "approved" });
+  return NextResponse.json({ ok: true, status: "active" });
 }
 
 async function generateAllAudio(
@@ -227,15 +234,9 @@ async function generateAllAudio(
       .where(eq(vocabularyPlans.id, plan.id));
   }
 
-  if (failedCount === words.length) {
-    await db
-      .update(vocabularyPlans)
-      .set({ status: "failed", updatedAt: new Date().toISOString() })
-      .where(eq(vocabularyPlans.id, plan.id));
-  } else {
-    await db
-      .update(vocabularyPlans)
-      .set({ status: "active", updatedAt: new Date().toISOString() })
-      .where(eq(vocabularyPlans.id, plan.id));
+  // Plan is already active — just log the result.
+  // Audio is best-effort; words play on-demand via /api/tts if pre-gen fails.
+  if (failedCount > 0) {
+    console.warn(`[Vocab Audio] ${failedCount}/${words.length} words failed audio pre-generation for plan ${plan.id}`);
   }
 }
