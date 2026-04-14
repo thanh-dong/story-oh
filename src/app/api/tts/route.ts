@@ -10,10 +10,9 @@ export async function POST(request: Request) {
   }
 
   const MINIMAX_API_KEY = process.env.MINIMAX_API_KEY;
-  const MINIMAX_GROUP_ID = process.env.MINIMAX_GROUP_ID;
   const MINIMAX_TTS_MODEL = process.env.MINIMAX_TTS_MODEL || "speech-2.6-hd";
 
-  if (!MINIMAX_API_KEY || !MINIMAX_GROUP_ID) {
+  if (!MINIMAX_API_KEY) {
     return NextResponse.json(
       { error: "TTS provider not configured" },
       { status: 500 }
@@ -56,7 +55,7 @@ export async function POST(request: Request) {
   // Generate via MiniMax Speech 2.6 HD
   try {
     const ttsResponse = await fetch(
-      `https://api.minimax.io/v1/t2a_v2?GroupId=${MINIMAX_GROUP_ID}`,
+      "https://api.minimax.io/v1/t2a_v2",
       {
         method: "POST",
         headers: {
@@ -86,14 +85,15 @@ export async function POST(request: Request) {
       }
     );
 
+    const json = await ttsResponse.json();
+
     if (!ttsResponse.ok) {
+      console.error("[TTS] MiniMax error:", JSON.stringify(json));
       return NextResponse.json(
-        { error: `TTS failed: ${ttsResponse.status}` },
+        { error: `TTS failed: ${json.base_resp?.status_msg ?? ttsResponse.status}` },
         { status: 500 }
       );
     }
-
-    const json = await ttsResponse.json();
 
     if (json.base_resp?.status_code !== 0) {
       return NextResponse.json(
