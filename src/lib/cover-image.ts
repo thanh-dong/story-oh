@@ -48,9 +48,9 @@ export async function generateCoverImage(
       return null;
     }
 
-    const base64Data = json.data?.images?.[0]?.base64 ?? json.data?.[0]?.base64;
-    if (!base64Data) {
-      console.error("[CoverImage] No image data in response");
+    const base64Data = json.data?.image_base64?.[0];
+    if (!base64Data || typeof base64Data !== "string") {
+      console.error("[CoverImage] No image data in response:", JSON.stringify(json).slice(0, 500));
       return null;
     }
 
