@@ -266,7 +266,8 @@ export default async function ChildManagePage({
         )}
       </section>
 
-      {/* Vocabulary Section */}
+      {/* Vocabulary Section — temporarily hidden */}
+      {false && (
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold">Vocabulary</h2>
@@ -319,6 +320,7 @@ export default async function ChildManagePage({
           </Link>
         )}
       </section>
+      )}
     </div>
   );
 }
