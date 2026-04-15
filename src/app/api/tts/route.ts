@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
-import { getCached, setCache, cleanExpired } from "@/lib/tts-cache";
+import { getCachedUrl, storeAudio } from "@/lib/tts-storage";
 
 export async function POST(request: Request) {
   // Require authentication
@@ -40,16 +40,19 @@ export async function POST(request: Request) {
   const voice = body.voice ?? "Vietnamese_kindhearted_girl";
   const languageBoost = body.language_boost ?? "Vietnamese";
 
-  // Check cache first
-  const cached = await getCached(body.text, voice);
-  if (cached) {
-    return new Response(new Uint8Array(cached), {
-      headers: {
-        "Content-Type": "audio/mpeg",
-        "Cache-Control": "public, max-age=86400",
-        "X-TTS-Cache": "hit",
-      },
-    });
+  // Check Supabase Storage cache first
+  const cachedUrl = await getCachedUrl(body.text, voice);
+  if (cachedUrl) {
+    const audioRes = await fetch(cachedUrl);
+    if (audioRes.ok) {
+      return new Response(audioRes.body, {
+        headers: {
+          "Content-Type": "audio/mpeg",
+          "Cache-Control": "public, max-age=86400",
+          "X-TTS-Cache": "hit",
+        },
+      });
+    }
   }
 
   // Generate via MiniMax TTS
@@ -106,13 +109,10 @@ export async function POST(request: Request) {
     // MiniMax returns hex-encoded audio
     const audioBuffer = Buffer.from(json.data.audio, "hex");
 
-    // Cache the result (non-blocking)
-    setCache(body.text, voice, audioBuffer).catch(() => {});
-
-    // Periodically clean expired cache (1% chance per request)
-    if (Math.random() < 0.01) {
-      cleanExpired().catch(() => {});
-    }
+    // Store in Supabase Storage (non-blocking — don't delay the response)
+    storeAudio(body.text, voice, audioBuffer).catch((err) =>
+      console.error("[TTS] Store failed:", err)
+    );
 
     return new Response(new Uint8Array(audioBuffer), {
       headers: {

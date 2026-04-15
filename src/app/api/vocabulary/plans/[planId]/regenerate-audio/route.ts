@@ -3,12 +3,18 @@ import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { vocabularyPlans, vocabularyWords } from "@/lib/db/schema";
 import { eq, and, isNull } from "drizzle-orm";
-import { setCache } from "@/lib/tts-cache";
+import { storeAudio } from "@/lib/tts-storage";
 
 const VOICE_MAP: Record<string, string> = {
   vi: "Vietnamese_kindhearted_girl",
   en: "English_PlayfulGirl",
   de: "German_PlayfulMan",
+};
+
+const LANGUAGE_BOOST_MAP: Record<string, string> = {
+  vi: "Vietnamese",
+  en: "English",
+  de: "German",
 };
 
 // Max words per request — keeps within Vercel's 10s function timeout
@@ -95,10 +101,17 @@ export async function POST(
     return NextResponse.json({ regenerated: 0, failed: 0, remaining: 0 });
   }
 
+  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    return NextResponse.json(
+      { error: "Storage not configured" },
+      { status: 500 }
+    );
+  }
+
   // Process only a small batch to stay within Vercel timeout
   const batch = allMissing.slice(0, BATCH_SIZE);
   const voice = VOICE_MAP[plan.nativeLanguage] || "Vietnamese_kindhearted_girl";
-  const ttlMs = (plan.weeksRequested * 7 + 14) * 24 * 60 * 60 * 1000;
+  const languageBoost = LANGUAGE_BOOST_MAP[plan.nativeLanguage] || "Vietnamese";
 
   let regenerated = 0;
   let failed = 0;
@@ -115,7 +128,7 @@ export async function POST(
           model: MINIMAX_TTS_MODEL,
           text: word.promptSentence,
           stream: false,
-          language_boost: "Vietnamese",
+          language_boost: languageBoost,
           voice_setting: {
             voice_id: voice,
             speed: 0.95,
@@ -142,17 +155,18 @@ export async function POST(
       }
 
       const audioBuffer = Buffer.from(json.data.audio, "hex");
-      await setCache(word.promptSentence, voice, audioBuffer, ttlMs);
 
-      const { createHash } = await import("crypto");
-      const cacheKey = createHash("sha256")
-        .update(`${voice}:${word.promptSentence}`)
-        .digest("hex");
+      // Upload to Supabase Storage — returns permanent public URL
+      const audioUrl = await storeAudio(
+        word.promptSentence,
+        voice,
+        audioBuffer
+      );
 
       await db
         .update(vocabularyWords)
         .set({
-          audioUrl: cacheKey,
+          audioUrl,
           audioGeneratedAt: new Date().toISOString(),
         })
         .where(eq(vocabularyWords.id, word.id));

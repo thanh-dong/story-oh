@@ -10,6 +10,7 @@ interface WordDetailProps {
     emoji: string;
     pronunciation: string;
     promptSentence: string;
+    audioUrl?: string | null;
   };
   voice: string;
   onListened: (wordId: string) => void;
@@ -31,36 +32,48 @@ export function WordDetail({ word, voice, onListened }: WordDetailProps) {
     setAudioState("loading");
 
     try {
-      const res = await fetch("/api/tts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: word.promptSentence, voice }),
-      });
+      let audioSrc: string;
+      let isBlobUrl = false;
 
-      if (!res.ok) {
-        setAudioState("idle");
-        return;
+      if (word.audioUrl?.startsWith("https://")) {
+        // Pre-generated — play directly from Supabase Storage, no API call needed
+        audioSrc = word.audioUrl;
+      } else {
+        const res = await fetch("/api/tts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: word.promptSentence, voice }),
+        });
+
+        if (!res.ok) {
+          setAudioState("idle");
+          return;
+        }
+
+        const blob = await res.blob();
+        audioSrc = URL.createObjectURL(blob);
+        isBlobUrl = true;
       }
-
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
 
       if (audioRef.current) {
         audioRef.current.pause();
-        URL.revokeObjectURL(audioRef.current.src);
+        // Only revoke blob URLs — revoking a regular URL is a no-op but be explicit
+        if (audioRef.current.src.startsWith("blob:")) {
+          URL.revokeObjectURL(audioRef.current.src);
+        }
       }
 
-      const audio = new Audio(url);
+      const audio = new Audio(audioSrc);
       audioRef.current = audio;
 
       audio.onended = () => {
         setAudioState("idle");
-        URL.revokeObjectURL(url);
+        if (isBlobUrl) URL.revokeObjectURL(audioSrc);
       };
 
       audio.onerror = () => {
         setAudioState("idle");
-        URL.revokeObjectURL(url);
+        if (isBlobUrl) URL.revokeObjectURL(audioSrc);
       };
 
       await audio.play();

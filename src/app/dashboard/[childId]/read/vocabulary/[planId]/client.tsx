@@ -22,6 +22,7 @@ interface VocabWordRow {
   emoji: string;
   pronunciation: string;
   promptSentence: string;
+  audioUrl: string | null;
   weekNumber: number;
   day: number;
   topic: string;
