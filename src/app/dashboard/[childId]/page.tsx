@@ -283,15 +283,15 @@ export default async function ChildManagePage({
           <div className="rounded-2xl bg-card p-6 shadow-card">
             <div className="flex items-center justify-between mb-2">
               <h3 className="font-bold">Vocabulary Plan</h3>
-              <span className="text-sm text-muted-foreground capitalize">{activePlan.status}</span>
+              <span className="text-sm text-muted-foreground capitalize">{activePlan!.status}</span>
             </div>
             <p className="text-sm text-muted-foreground mb-3">
-              {activePlan.weeksRequested} week{activePlan.weeksRequested > 1 ? "s" : ""} · {vocabWordsListened}/{activePlan.wordsTotal} words learned
+              {activePlan!.weeksRequested} week{activePlan!.weeksRequested > 1 ? "s" : ""} · {vocabWordsListened}/{activePlan!.wordsTotal} words learned
             </p>
             <div className="h-2 rounded-full bg-muted overflow-hidden mb-3">
               <div
                 className="h-full rounded-full bg-primary transition-all animate-progress-fill"
-                style={{ width: `${activePlan.wordsTotal > 0 ? Math.round((vocabWordsListened / activePlan.wordsTotal) * 100) : 0}%` }}
+                style={{ width: `${activePlan!.wordsTotal > 0 ? Math.round((vocabWordsListened / activePlan!.wordsTotal) * 100) : 0}%` }}
               />
             </div>
             <Link
