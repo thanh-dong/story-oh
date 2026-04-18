@@ -3,10 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 import { StoryForm } from "@/components/admin/story-form";
 import { GenerateStoryForm } from "@/components/admin/generate-story-form";
-import { Button } from "@/components/ui/button";
 import type { GenerateStoryResponse, StoryTree } from "@/lib/types";
 
 type Mode = "manual" | "generate";
@@ -64,17 +62,25 @@ export default function UserCreateStoryPage() {
     : undefined;
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 px-4 py-6 sm:px-6 sm:py-10">
-      <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" className="rounded-lg" render={<Link href="/library" />}>
-          <ArrowLeft className="size-5" />
-        </Button>
-        <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
-          Create My Story
-        </h1>
-      </div>
+    <div className="bg-background text-foreground">
+      <div className="px-4 pb-16 pt-10 sm:px-10">
+        <div className="mx-auto max-w-3xl space-y-6">
+          <div className="mb-[18px] flex items-center gap-2.5">
+            <div className="h-px w-10 bg-ink" />
+            <span className="mono text-[11px] font-semibold uppercase tracking-[0.18em] text-ink">
+              New Story
+            </span>
+          </div>
 
-      <div className="flex gap-1 rounded-xl bg-muted p-1">
+          <Link href="/library" className="inline-flex text-sm font-semibold text-muted-foreground hover:text-foreground">
+            &larr; Back to library
+          </Link>
+
+          <h1 className="display text-3xl font-black sm:text-[44px]" style={{ letterSpacing: "-0.02em" }}>
+            Create a <em className="font-medium italic text-primary">story</em>.
+          </h1>
+
+      <div className="flex gap-1 rounded-[14px] bg-muted p-1">
         <button
           onClick={() => setMode("manual")}
           className={`flex-1 rounded-lg px-4 py-2 text-sm font-semibold transition-all ${
@@ -112,6 +118,8 @@ export default function UserCreateStoryPage() {
           onCreditsUsed={(_charged, remaining) => setCredits(remaining)}
         />
       )}
+        </div>
+      </div>
     </div>
   );
 }

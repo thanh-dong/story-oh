@@ -2,9 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { ChildForm } from "@/components/child-form";
 import type { Child } from "@/lib/types";
 
@@ -37,7 +35,7 @@ export default function EditChildPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <p className="text-muted-foreground">Loading...</p>
+        <div className="animate-pulse text-muted-foreground">Loading...</div>
       </div>
     );
   }
@@ -45,35 +43,47 @@ export default function EditChildPage() {
   if (!child) return null;
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 px-4 py-6 sm:px-6 sm:py-10">
-      <div className="flex items-center gap-4 animate-fade-up">
-        <Button
-          variant="ghost"
-          size="lg"
-          className="min-h-[44px] rounded-xl"
-          render={<Link href="/dashboard" />}
-        >
-          <ArrowLeft className="size-5" data-icon="inline-start" />
-          Back
-        </Button>
-        <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
-          Edit {child.name}
-        </h1>
-      </div>
+    <div className="bg-background text-foreground">
+      <div className="px-4 pb-16 pt-10 sm:px-10">
+        <div className="mx-auto max-w-2xl">
+          <div className="mb-[18px] flex items-center gap-2.5">
+            <div className="h-px w-10 bg-ink" />
+            <span className="mono text-[11px] font-semibold uppercase tracking-[0.18em] text-ink">
+              Edit Profile
+            </span>
+          </div>
 
-      <ChildForm
-        initialData={{
-          name: child.name,
-          dateOfBirth: child.dateOfBirth,
-          avatar: child.avatar,
-          nativeLanguage: child.nativeLanguage,
-          learningLanguages: child.learningLanguages,
-          interests: child.interests,
-          dailyGoalMinutes: child.dailyGoalMinutes,
-        }}
-        onSubmit={handleUpdate}
-        submitLabel="Save Changes"
-      />
+          <Link
+            href={`/dashboard/${childId}`}
+            className="mb-2 inline-flex text-sm font-semibold text-muted-foreground hover:text-foreground"
+          >
+            &larr; Back to {child.name}
+          </Link>
+
+          <h1
+            className="display mb-8 text-3xl font-black sm:text-[44px]"
+            style={{ letterSpacing: "-0.02em" }}
+          >
+            Edit <em className="font-medium italic text-primary">{child.name}</em>.
+          </h1>
+
+          <div className="rounded-[18px] border border-border bg-card p-6 shadow-card sm:p-8">
+            <ChildForm
+              initialData={{
+                name: child.name,
+                dateOfBirth: child.dateOfBirth,
+                avatar: child.avatar,
+                nativeLanguage: child.nativeLanguage,
+                learningLanguages: child.learningLanguages,
+                interests: child.interests,
+                dailyGoalMinutes: child.dailyGoalMinutes,
+              }}
+              onSubmit={handleUpdate}
+              submitLabel="Save Changes"
+            />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

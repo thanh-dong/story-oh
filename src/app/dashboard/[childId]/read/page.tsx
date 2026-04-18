@@ -1,14 +1,24 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { childStories, stories, userStories, vocabularyPlans } from "@/lib/db/schema";
 import { and, eq, or, isNull, inArray } from "drizzle-orm";
 import { verifyChildOwnership, calculateAge } from "@/lib/children";
-import { Badge } from "@/components/ui/badge";
-import { StoryCover } from "@/components/story-cover";
+import { BookCover, Pill, Ornament } from "@/components/editorial";
 import type { Story, StoryTree } from "@/lib/types";
+
+const coverPalettes: [string, string][] = [
+  ["#D98A5B", "#8E3A2B"], ["#6E5FA8", "#3C2F6A"], ["#4D8F78", "#1F4F3F"],
+  ["#C88A3F", "#7A3E1F"], ["#4D728F", "#1F3B52"], ["#8A5893", "#432948"],
+];
+function getPalette(title: string): [string, string] {
+  let hash = 0;
+  for (let i = 0; i < title.length; i++) hash = title.charCodeAt(i) + ((hash << 5) - hash);
+  return coverPalettes[Math.abs(hash) % coverPalettes.length];
+}
 
 function isAtEnding(storyTree: StoryTree, currentNode: string): boolean {
   const node = storyTree[currentNode];
@@ -29,7 +39,6 @@ export default async function ChildReadingHubPage({
 
   const age = calculateAge(child.dateOfBirth);
 
-  // Fetch active or approved vocabulary plan
   const vocabRows = await db
     .select()
     .from(vocabularyPlans)
@@ -39,7 +48,6 @@ export default async function ChildReadingHubPage({
   const approvedPlan = vocabRows.find((p) => p.status === "approved");
   const vocabPlan = activePlan || approvedPlan;
 
-  // Fetch all available stories: public + parent-created + explicitly assigned
   const assignedRows = await db
     .select({ storyId: childStories.storyId })
     .from(childStories)
@@ -54,140 +62,98 @@ export default async function ChildReadingHubPage({
     conditions.push(inArray(stories.id, assignedIds));
   }
 
-  const storyList = await db
-    .select()
-    .from(stories)
-    .where(or(...conditions));
+  const storyList = await db.select().from(stories).where(or(...conditions));
 
   const progressRows = await db
     .select()
     .from(userStories)
-    .where(
-      and(
-        eq(userStories.user_id, session.user.id),
-        eq(userStories.child_id, childId)
-      )
-    );
-  const progressMap = new Map(
-    progressRows.map((r) => [r.story_id, r.progress])
-  );
+    .where(and(eq(userStories.user_id, session.user.id), eq(userStories.child_id, childId)));
+  const progressMap = new Map(progressRows.map((r) => [r.story_id, r.progress]));
 
   const assignedStories = storyList.map((story) => ({
     story: story as Story,
     progress: progressMap.get(story.id) ?? null,
   }));
 
-  // Sort: in-progress first, then not-started, then completed
   const sorted = assignedStories.sort((a, b) => {
     const statusOrder = (s: typeof a) => {
-      if (s.progress && !isAtEnding(s.story.story_tree, s.progress.current_node)) return 0; // in progress
-      if (!s.progress) return 1; // not started
-      return 2; // completed
+      if (s.progress && !isAtEnding(s.story.story_tree, s.progress.current_node)) return 0;
+      if (!s.progress) return 1;
+      return 2;
     };
     return statusOrder(a) - statusOrder(b);
   });
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="animate-fade-up">
-        <div className="flex items-center gap-4">
-          <span className="text-6xl">{child.avatar}</span>
-          <div>
-            <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
-              Hi {child.name}!
-            </h1>
-            <Badge variant="secondary" className="mt-1">Age {age}</Badge>
-          </div>
+    <div className="space-y-6">
+      {/* Greeting */}
+      <div className="flex items-center gap-4">
+        <span className="text-5xl sm:text-6xl">{child.avatar}</span>
+        <div>
+          <h1 className="display text-2xl font-black sm:text-3xl" style={{ letterSpacing: "-0.02em" }}>
+            Hi {child.name}!
+          </h1>
+          <Pill tone="primary">Age {age}</Pill>
         </div>
       </div>
 
-      {vocabPlan && (
-        vocabPlan.status === "active" ? (
-          <Link
-            href={`/dashboard/${childId}/read/vocabulary/${vocabPlan.id}`}
-            className="block animate-fade-up"
-          >
-            <div className="rounded-2xl bg-gradient-to-br from-kid-yellow to-kid-orange p-6 shadow-card transition-all duration-300 hover:-translate-y-1 hover:shadow-elevated">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <span className="text-5xl">📚</span>
-                  <div>
-                    <h2 className="text-xl font-extrabold text-white">Today&apos;s Words</h2>
-                    <p className="text-sm text-white/80">
-                      {vocabPlan.wordsTotal} words to learn
-                    </p>
-                  </div>
+      {/* Vocabulary CTA */}
+      {vocabPlan && vocabPlan.status === "active" && (
+        <Link href={`/dashboard/${childId}/read/vocabulary/${vocabPlan.id}`} className="block">
+          <div className="relative overflow-hidden rounded-[18px] p-6 text-white shadow-card transition-all hover:-translate-y-1" style={{ background: "linear-gradient(135deg, var(--kid-yellow), var(--kid-orange))" }}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="display text-4xl font-black">A</div>
+                <div>
+                  <h2 className="display text-xl font-black">Today&rsquo;s Words</h2>
+                  <p className="text-sm text-white/80">{vocabPlan.wordsTotal} words to learn</p>
                 </div>
-                <ArrowRight className="size-6 text-white/60" />
               </div>
-            </div>
-          </Link>
-        ) : (
-          <div className="animate-fade-up rounded-2xl bg-gradient-to-br from-kid-yellow/60 to-kid-orange/60 p-5 storybook-shadow">
-            <div className="flex items-center gap-3">
-              <span className="text-4xl">📚</span>
-              <div>
-                <h2 className="text-lg font-extrabold text-white">Words Coming Soon!</h2>
-                <p className="text-sm text-white/80">
-                  Your vocabulary plan is getting ready...
-                </p>
-              </div>
+              <ArrowRight className="size-6 text-white/60" />
             </div>
           </div>
-        )
+        </Link>
       )}
 
+      {/* Stories grid */}
       {sorted.length === 0 ? (
-        <div className="flex flex-col items-center gap-4 rounded-2xl bg-parchment py-16 text-center">
-          <span className="text-6xl" aria-hidden="true">&#x1F4DA;</span>
-          <p className="text-xl font-bold">No stories yet!</p>
-          <p className="text-muted-foreground">
-            Ask your parent to pick some stories for you.
-          </p>
+        <div className="flex flex-col items-center gap-4 rounded-[18px] bg-parchment py-16 text-center">
+          <Ornament kind="star" size={40} color="var(--kid-yellow)" />
+          <p className="display text-xl font-black">No stories yet!</p>
+          <p className="text-sm text-muted-foreground">Ask your parent to pick some stories for you.</p>
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
           {sorted.map(({ story, progress }) => {
             const isDone = progress && isAtEnding(story.story_tree, progress.current_node);
             const isReading = progress && !isDone;
+            const palette = getPalette(story.title);
 
             return (
-              <Link
-                key={story.id}
-                href={`/dashboard/${childId}/read/${story.id}`}
-                className="group block"
-              >
-                <article className="relative overflow-hidden rounded-2xl bg-card shadow-card transition-all duration-200 hover:-translate-y-1 hover:shadow-elevated">
-                  <StoryCover
-                    title={story.title}
-                    coverImage={story.cover_image}
-                    heightClass="h-28"
-                    emojiClass="text-4xl drop-shadow-md transition-transform duration-300 group-hover:scale-110"
-                  >
-                    {isDone && (
-                      <Badge className="absolute right-3 top-3 border-0 bg-white/25 text-white backdrop-blur-sm text-xs font-bold">
-                        &#x2713; Done
-                      </Badge>
-                    )}
-                  </StoryCover>
+              <Link key={story.id} href={`/dashboard/${childId}/read/${story.id}`} className="group block">
+                <article className="relative overflow-hidden rounded-[18px] border border-border bg-card shadow-card transition-all hover:-translate-y-1 hover:shadow-elevated">
+                  {story.cover_image ? (
+                    <div className="relative h-[140px] w-full overflow-hidden">
+                      <Image src={story.cover_image} alt={story.title} fill className="object-cover" sizes="(max-width: 640px) 100vw, 50vw" />
+                    </div>
+                  ) : (
+                    <BookCover title={story.title} palette={palette} />
+                  )}
                   <div className="p-4">
-                    <h3 className="font-bold">{story.title}</h3>
-                    {isReading && (
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        {progress!.history.length - 1} choices made
-                      </p>
-                    )}
-                    {!isReading && !isDone && (
-                      <p className="mt-1 line-clamp-1 text-sm text-muted-foreground">{story.summary}</p>
-                    )}
-                    <span className={`mt-2 inline-block rounded-full px-4 py-1.5 text-sm font-bold ${
-                      isDone
-                        ? "bg-muted text-muted-foreground"
-                        : "bg-primary text-primary-foreground"
-                    }`}>
-                      {isReading ? "Continue" : isDone ? "Read Again" : "Start Reading"}
-                    </span>
+                    <div className="mb-1.5">
+                      {isDone && <Pill tone="green">&#x2713; Done</Pill>}
+                      {isReading && <Pill tone="primary">Reading</Pill>}
+                    </div>
+                    <h3 className="display text-lg font-extrabold" style={{ letterSpacing: "-0.01em" }}>
+                      {story.title}
+                    </h3>
+                    <div className="mt-3">
+                      <span className={`inline-block rounded-full px-5 py-2 text-sm font-bold ${
+                        isDone ? "bg-muted text-muted-foreground" : "bg-primary text-primary-foreground"
+                      }`}>
+                        {isReading ? "Continue" : isDone ? "Read Again" : "Start Reading"}
+                      </span>
+                    </div>
                   </div>
                 </article>
               </Link>

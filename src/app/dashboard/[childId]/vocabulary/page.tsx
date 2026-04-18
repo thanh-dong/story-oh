@@ -5,8 +5,6 @@ import { db } from "@/lib/db";
 import { vocabularyPlans } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { verifyChildOwnership, calculateAge } from "@/lib/children";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
 import { VocabularyManageClient } from "./client";
 
 export default async function VocabularyManagePage({
@@ -34,33 +32,40 @@ export default async function VocabularyManagePage({
   const draftPlan = plans.find((p) => p.status === "draft");
 
   return (
-    <div className="mx-auto max-w-5xl space-y-8 px-4 py-6 sm:px-6 sm:py-10">
-      {/* Header */}
-      <div className="animate-fade-up">
-        <div className="mb-4">
-          <Button
-            variant="ghost"
-            size="lg"
-            className="min-h-[44px] rounded-xl"
-            render={<Link href={`/dashboard/${childId}`} />}
-          >
-            <ArrowLeft className="size-5" data-icon="inline-start" />
-            Back to {child.name}
-          </Button>
-        </div>
-        <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
-          Vocabulary for {child.name}
-        </h1>
-      </div>
+    <div className="bg-background text-foreground">
+      <div className="px-4 pb-16 pt-10 sm:px-10">
+        <div className="mx-auto max-w-[1360px]">
+          <div className="mb-[18px] flex items-center gap-2.5">
+            <div className="h-px w-10 bg-ink" />
+            <span className="mono text-[11px] font-semibold uppercase tracking-[0.18em] text-ink">
+              Vocabulary Plan
+            </span>
+          </div>
 
-      <VocabularyManageClient
-        childId={childId}
-        childAge={age}
-        childName={child.name}
-        learningLanguages={child.learningLanguages}
-        activePlan={activePlan ?? null}
-        draftPlan={draftPlan ?? null}
-      />
+          <Link
+            href={`/dashboard/${childId}`}
+            className="mb-2 inline-flex text-sm font-semibold text-muted-foreground hover:text-foreground"
+          >
+            &larr; Back to {child.name}
+          </Link>
+
+          <h1
+            className="display mb-8 text-3xl font-black sm:text-[44px]"
+            style={{ letterSpacing: "-0.02em" }}
+          >
+            Vocabulary for <em className="font-medium italic text-primary">{child.name}</em>.
+          </h1>
+
+          <VocabularyManageClient
+            childId={childId}
+            childAge={age}
+            childName={child.name}
+            learningLanguages={child.learningLanguages}
+            activePlan={activePlan ?? null}
+            draftPlan={draftPlan ?? null}
+          />
+        </div>
+      </div>
     </div>
   );
 }
