@@ -61,12 +61,9 @@ export function LoginForm({
 
   return (
     <div className="space-y-4">
-      <form
-        onSubmit={handleSubmit}
-        className="space-y-4 rounded-2xl bg-card p-6 storybook-shadow"
-      >
-        <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-1.5">
+          <Label htmlFor="email" className="text-sm font-semibold">Email</Label>
           <Input
             id="email"
             type="email"
@@ -74,11 +71,11 @@ export function LoginForm({
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@example.com"
             required
-            className="rounded-xl"
+            className="rounded-xl border-border"
           />
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="password">Password</Label>
+        <div className="space-y-1.5">
+          <Label htmlFor="password" className="text-sm font-semibold">Password</Label>
           <Input
             id="password"
             type="password"
@@ -86,7 +83,7 @@ export function LoginForm({
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Your password"
             required
-            className="rounded-xl"
+            className="rounded-xl border-border"
           />
         </div>
 
@@ -99,7 +96,7 @@ export function LoginForm({
         <Button
           type="submit"
           disabled={loading}
-          className="w-full rounded-full text-base font-bold"
+          className="w-full rounded-full py-5 text-base font-bold"
         >
           {loading ? "Signing in..." : "Sign In"}
         </Button>
@@ -110,14 +107,16 @@ export function LoginForm({
               <div className="absolute inset-0 flex items-center">
                 <span className="w-full border-t border-border" />
               </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-card px-2 text-muted-foreground">or</span>
+              <div className="relative flex justify-center">
+                <span className="mono bg-card px-3 text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+                  or
+                </span>
               </div>
             </div>
             <Button
               type="button"
               variant="outline"
-              className="w-full rounded-full"
+              className="w-full rounded-full py-5 text-base font-semibold"
               onClick={() => signIn.social({ provider: "google", callbackURL: next })}
               disabled={loading}
             >
@@ -128,8 +127,8 @@ export function LoginForm({
       </form>
 
       {isDev && (
-        <div className="rounded-2xl border border-dashed border-kid-orange/40 bg-kid-yellow/10 p-4 space-y-3">
-          <p className="text-xs font-bold uppercase tracking-wider text-kid-orange">
+        <div className="rounded-[14px] border border-dashed border-kid-orange/40 bg-kid-yellow/10 p-4 space-y-3">
+          <p className="mono text-[10px] font-semibold uppercase tracking-[0.14em] text-kid-orange">
             Dev Accounts
           </p>
           <div className="flex gap-2">
