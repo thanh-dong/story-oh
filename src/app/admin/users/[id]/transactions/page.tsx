@@ -3,8 +3,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 interface Transaction {
@@ -51,19 +49,23 @@ export default function UserTransactionsPage() {
   }
 
   return (
-    <div className="space-y-8">
-      <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" className="rounded-lg" render={<Link href="/admin/users" />}>
-          <ArrowLeft className="size-5" />
-        </Button>
-        <div>
-          <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
-            Transaction History
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {transactions.length} transactions
-          </p>
+    <div className="bg-background text-foreground">
+      <div className="px-4 pb-16 pt-10 sm:px-10">
+        <div className="mx-auto max-w-[1360px] space-y-8">
+      <div>
+        <div className="mb-[18px] flex items-center gap-2.5">
+          <div className="h-px w-10 bg-ink" />
+          <span className="mono text-[11px] font-semibold uppercase tracking-[0.18em] text-ink">
+            Admin &middot; Transactions
+          </span>
         </div>
+        <Link href="/admin/users" className="mb-2 inline-flex text-sm font-semibold text-muted-foreground hover:text-foreground">
+          &larr; Back to users
+        </Link>
+        <h1 className="display text-3xl font-black sm:text-[44px]" style={{ letterSpacing: "-0.02em" }}>
+          Transaction <em className="font-medium italic text-primary">history</em>.
+        </h1>
+        <p className="mt-2 text-[15px] text-muted-foreground">{transactions.length} transactions</p>
       </div>
 
       {loading ? (
@@ -103,6 +105,8 @@ export default function UserTransactionsPage() {
           <p className="text-lg font-semibold">No transactions yet</p>
         </div>
       )}
+        </div>
+      </div>
     </div>
   );
 }

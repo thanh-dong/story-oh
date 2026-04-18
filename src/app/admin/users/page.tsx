@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, History, Minus, Plus } from "lucide-react";
+import { History, Minus, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -70,15 +70,23 @@ export default function AdminUsersPage() {
   }
 
   return (
-    <div className="space-y-8">
-      <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" className="rounded-lg" render={<Link href="/admin" />}>
-          <ArrowLeft className="size-5" />
-        </Button>
-        <div>
-          <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">Users</h1>
-          <p className="mt-1 text-sm text-muted-foreground">{users.length} registered users</p>
+    <div className="bg-background text-foreground">
+      <div className="px-4 pb-16 pt-10 sm:px-10">
+        <div className="mx-auto max-w-[1360px] space-y-8">
+      <div>
+        <div className="mb-[18px] flex items-center gap-2.5">
+          <div className="h-px w-10 bg-ink" />
+          <span className="mono text-[11px] font-semibold uppercase tracking-[0.18em] text-ink">
+            Admin &middot; Users
+          </span>
         </div>
+        <Link href="/admin" className="mb-2 inline-flex text-sm font-semibold text-muted-foreground hover:text-foreground">
+          &larr; Back to admin
+        </Link>
+        <h1 className="display text-3xl font-black sm:text-[44px]" style={{ letterSpacing: "-0.02em" }}>
+          User <em className="font-medium italic text-primary">management</em>.
+        </h1>
+        <p className="mt-2 text-[15px] text-muted-foreground">{users.length} registered users</p>
       </div>
 
       {loading ? (
@@ -191,6 +199,8 @@ export default function AdminUsersPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+        </div>
+      </div>
     </div>
   );
 }

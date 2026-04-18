@@ -3,9 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 import { StoryForm } from "@/components/admin/story-form";
-import { Button } from "@/components/ui/button";
 import type { Story } from "@/lib/types";
 
 export default function EditStoryPage() {
@@ -43,36 +41,47 @@ export default function EditStoryPage() {
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <div className="h-8 w-48 animate-pulse rounded-lg bg-muted" />
-        <div className="h-64 animate-pulse rounded-2xl bg-muted" />
+      <div className="animate-pulse px-4 pt-10 pb-20 sm:px-10">
+        <div className="mx-auto max-w-3xl">
+          <div className="mb-5 h-3 w-28 rounded bg-muted" />
+          <div className="mb-8 h-10 w-64 rounded-lg bg-muted" />
+          <div className="h-64 rounded-[18px] bg-muted" />
+        </div>
       </div>
     );
   }
 
   if (!story) {
     return (
-      <div className="flex flex-col items-center gap-4 rounded-2xl bg-parchment py-20 text-center">
-        <span className="text-5xl" aria-hidden="true">&#x1F50D;</span>
-        <p className="text-lg font-semibold">Story not found</p>
-        <Link href="/admin">
-          <Button variant="outline" className="rounded-full">Back to Stories</Button>
-        </Link>
+      <div className="flex flex-col items-center gap-4 px-4 py-20 text-center sm:px-10">
+        <p className="display text-xl font-black">Story not found</p>
+        <Link href="/admin" className="text-sm font-semibold text-primary">&larr; Back to admin</Link>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" className="rounded-lg" render={<Link href="/admin" />}>
-          <ArrowLeft className="size-5" />
-        </Button>
-        <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
-          Edit Story
-        </h1>
+    <div className="bg-background text-foreground">
+      <div className="px-4 pb-16 pt-10 sm:px-10">
+        <div className="mx-auto max-w-3xl space-y-6">
+          <div className="mb-[18px] flex items-center gap-2.5">
+            <div className="h-px w-10 bg-ink" />
+            <span className="mono text-[11px] font-semibold uppercase tracking-[0.18em] text-ink">
+              Admin &middot; Edit Story
+            </span>
+          </div>
+
+          <Link href="/admin" className="inline-flex text-sm font-semibold text-muted-foreground hover:text-foreground">
+            &larr; Back to admin
+          </Link>
+
+          <h1 className="display text-3xl font-black sm:text-[44px]" style={{ letterSpacing: "-0.02em" }}>
+            Edit <em className="font-medium italic text-primary">story</em>.
+          </h1>
+
+          <StoryForm initialData={story} onSave={handleSave} saving={saving} />
+        </div>
       </div>
-      <StoryForm initialData={story} onSave={handleSave} saving={saving} />
     </div>
   );
 }

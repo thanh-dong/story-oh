@@ -68,30 +68,40 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="bg-background text-foreground">
+      <div className="px-4 pb-16 pt-10 sm:px-10">
+        <div className="mx-auto max-w-[1360px] space-y-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
-            Stories
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {stories.length} {stories.length === 1 ? "story" : "stories"} in your library
-          </p>
+      <div>
+        <div className="mb-[18px] flex items-center gap-2.5">
+          <div className="h-px w-10 bg-ink" />
+          <span className="mono text-[11px] font-semibold uppercase tracking-[0.18em] text-ink">
+            Admin Panel
+          </span>
         </div>
-        <div className="flex items-center gap-2">
-          <Link href="/admin/users">
-            <Button variant="outline" className="rounded-full font-bold">
-              <Users className="size-4" data-icon="inline-start" />
-              Users
-            </Button>
-          </Link>
-          <Link href="/admin/stories/new">
-            <Button className="rounded-full font-bold">
-              <Plus className="size-4" data-icon="inline-start" />
-              New Story
-            </Button>
-          </Link>
+        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+          <div>
+            <h1 className="display text-3xl font-black sm:text-[44px]" style={{ letterSpacing: "-0.02em" }}>
+              Story <em className="font-medium italic text-primary">management</em>.
+            </h1>
+            <p className="mt-2 text-[15px] text-muted-foreground">
+              {stories.length} {stories.length === 1 ? "story" : "stories"} in your library
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Link href="/admin/users">
+              <Button variant="outline" className="rounded-full font-bold">
+                <Users className="size-4" data-icon="inline-start" />
+                Users
+              </Button>
+            </Link>
+            <Link href="/admin/stories/new">
+              <Button className="rounded-full font-bold">
+                <Plus className="size-4" data-icon="inline-start" />
+                New Story
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
 
@@ -212,6 +222,8 @@ export default function AdminPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+        </div>
+      </div>
     </div>
   );
 }
