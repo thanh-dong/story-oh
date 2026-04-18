@@ -46,15 +46,16 @@ export default async function Home() {
           }}
         />
 
+        <div className="relative mx-auto max-w-[1360px]">
         {/* Editorial eyebrow */}
-        <div className="relative mb-[18px] flex items-center gap-2.5">
+        <div className="mb-[18px] flex items-center gap-2.5">
           <div className="h-px w-10 bg-ink" />
           <span className="mono text-[11px] font-semibold uppercase tracking-[0.18em] text-ink">
             Volume Four &middot; Ages 4&mdash;12
           </span>
         </div>
 
-        <div className="relative mx-auto grid max-w-[1360px] items-center gap-12 lg:grid-cols-[1.3fr_1fr]">
+        <div className="grid items-center gap-12 lg:grid-cols-[1.3fr_1fr]">
           {/* Headline */}
           <div>
             <h1
@@ -117,6 +118,7 @@ export default async function Home() {
               <Ornament kind="diamond" size={20} color="var(--kid-pink)" />
             </div>
           </div>
+        </div>
         </div>
       </section>
 
