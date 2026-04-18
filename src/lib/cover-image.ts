@@ -87,15 +87,16 @@ export async function generateCoverImage(
 }
 
 function buildPrompt(title: string, summary: string): string {
-  // Take first 200 chars of summary to keep prompt concise
-  const shortSummary = summary.length > 200 ? summary.slice(0, 200) + "..." : summary;
+  // Sanitize LLM-generated content before passing to image generation
+  const safeTitle = title.replace(/[\r\n{}[\]`]/g, "").slice(0, 100).trim();
+  const safeSummary = summary.replace(/[\r\n{}[\]`]/g, "").slice(0, 200).trim();
 
   return [
     "Children's book cover illustration in colorful cartoon style.",
     "Bright, warm, cheerful colors. Rounded friendly shapes.",
     "Safe and age-appropriate for children aged 4-12.",
     "No text or letters in the image.",
-    `Story: "${title}" — ${shortSummary}`,
+    `Story: "${safeTitle}" — ${safeSummary}`,
   ].join(" ");
 }
 

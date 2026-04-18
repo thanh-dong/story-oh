@@ -128,7 +128,14 @@ Rules:
 - ${req.isForChildren ? "Content must be safe and appropriate for children" : "Content should be appropriate for the target age group"}
 - Difficulty "${req.difficulty}" means: ${req.difficulty === "easy" ? "simple vocabulary, short sentences, straightforward plot" : req.difficulty === "medium" ? "moderate vocabulary, varied sentence length, some complexity" : "rich vocabulary, complex sentences, nuanced plot"}`;
 
-  const user = `Create an interactive branching story in ${langName} about "${req.keyword}" for readers aged ${req.audienceAge}. Expected reading time: ${req.expectedReadingTime} minutes. Difficulty: ${req.difficulty}. Branches: ${req.minBranches}-${req.maxBranches}.`;
+  // Sanitize user-supplied keyword: strip newlines and structural chars
+  const safeKeyword = req.keyword
+    .replace(/[\r\n]+/g, " ")
+    .replace(/[{}[\]`]/g, "")
+    .slice(0, 200)
+    .trim();
+
+  const user = `Create an interactive branching story in ${langName} about "${safeKeyword}" for readers aged ${req.audienceAge}. Expected reading time: ${req.expectedReadingTime} minutes. Difficulty: ${req.difficulty}. Branches: ${req.minBranches}-${req.maxBranches}.`;
 
   return { system, user };
 }
