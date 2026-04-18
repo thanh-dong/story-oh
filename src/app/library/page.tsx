@@ -65,7 +65,7 @@ export default async function LibraryPage() {
   }
 
   return (
-    <div className="space-y-12">
+    <div className="mx-auto max-w-5xl space-y-12 px-4 py-6 sm:px-6 sm:py-10">
       {/* ── My Stories section ── */}
       <section className="space-y-6">
         <div className="flex items-end justify-between animate-fade-up">

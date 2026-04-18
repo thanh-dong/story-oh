@@ -2,11 +2,19 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { BookOpen, LayoutDashboard, Library, LogIn, LogOut, Menu, Shield, X } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { LogIn, LogOut, Menu, Shield, X } from "lucide-react";
 import { useSession, signOut } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { Pill, Ornament } from "@/components/editorial";
+
+const navLinks = [
+  { href: "/", label: "Home" },
+  { href: "/explore", label: "Explore" },
+  { href: "/dashboard", label: "Dashboard" },
+  { href: "/library", label: "Library" },
+] as const;
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -14,6 +22,7 @@ export function Navbar() {
   const { data: session } = useSession();
   const user = session?.user ?? null;
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     if (!user || user.role === "admin") return;
@@ -27,7 +36,6 @@ export function Navbar() {
 
     fetchCredits();
 
-    // Listen for credit updates from other components
     window.addEventListener("credits-updated", fetchCredits);
     return () => window.removeEventListener("credits-updated", fetchCredits);
   }, [user]);
@@ -44,204 +52,140 @@ export function Navbar() {
   };
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/90 backdrop-blur-md">
-      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:h-16 sm:px-6">
+    <nav className="sticky top-0 z-50 w-full border-b border-border bg-background">
+      <div className="mx-auto flex h-14 max-w-[1360px] items-center justify-between px-4 sm:h-16 sm:px-10">
         {/* Logo */}
-        <Link
-          href="/"
-          className="flex items-center gap-2 text-xl font-extrabold tracking-tight transition-transform hover:scale-[1.03] sm:text-2xl"
-        >
-          <span className="text-2xl sm:text-3xl" role="img" aria-label="open book">
-            &#x1F4D6;
-          </span>
-          <span className="text-foreground">
-            Story<span className="text-primary">Time</span>
+        <Link href="/" className="flex items-center gap-2.5">
+          <div className="display grid size-[34px] place-items-center rounded-[10px] bg-ink text-[20px] font-black italic text-background">
+            S
+          </div>
+          <span className="display text-[22px] font-extrabold" style={{ letterSpacing: "-0.02em" }}>
+            Story<span className="italic text-primary">Time</span>
           </span>
         </Link>
 
-        {/* Desktop Navigation */}
-        <div className="hidden items-center gap-2 sm:flex">
-          <Button
-            variant="ghost"
-            size="lg"
-            className="min-h-[44px] min-w-[44px] rounded-xl text-base font-semibold"
-            render={<Link href="/explore" />}
-          >
-            <BookOpen className="size-5" data-icon="inline-start" />
-            Explore
-          </Button>
-
-          {user && (
-            <Button
-              variant="ghost"
-              size="lg"
-              className="min-h-[44px] min-w-[44px] rounded-xl text-base font-semibold"
-              render={<Link href="/dashboard" />}
-            >
-              <LayoutDashboard className="size-5" data-icon="inline-start" />
-              Dashboard
-            </Button>
-          )}
-
-          {user && (
-            <Button
-              variant="ghost"
-              size="lg"
-              className="min-h-[44px] min-w-[44px] rounded-xl text-base font-semibold"
-              render={<Link href="/library" />}
-            >
-              <Library className="size-5" data-icon="inline-start" />
-              My Library
-            </Button>
-          )}
-
+        {/* Desktop nav links */}
+        <div className="hidden items-center gap-7 text-sm font-semibold sm:flex">
+          {navLinks.map(({ href, label }) => {
+            // Show Dashboard and Library only when logged in
+            if ((href === "/dashboard" || href === "/library") && !user) return null;
+            const isActive = pathname === href || (href !== "/" && pathname.startsWith(href));
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={isActive ? "text-primary" : "text-muted-foreground hover:text-foreground transition-colors"}
+              >
+                {label}
+              </Link>
+            );
+          })}
           {user?.role === "admin" && (
-            <Button
-              variant="ghost"
-              size="lg"
-              className="min-h-[44px] min-w-[44px] rounded-xl text-base font-semibold"
-              render={<Link href="/admin" />}
+            <Link
+              href="/admin"
+              className={
+                pathname.startsWith("/admin")
+                  ? "text-primary"
+                  : "text-muted-foreground hover:text-foreground transition-colors"
+              }
             >
-              <Shield className="size-5" data-icon="inline-start" />
               Admin
-            </Button>
+            </Link>
           )}
+        </div>
 
+        {/* Right side */}
+        <div className="hidden items-center gap-3 sm:flex">
           <ThemeToggle />
-
+          {user && credits !== null && (
+            <Pill tone="yellow" icon={<Ornament kind="star" size={12} color="var(--kid-orange)" />}>
+              {credits} &#x2726;
+            </Pill>
+          )}
           {user ? (
-            <div className="flex items-center gap-2 ml-2">
-              {credits !== null && (
-                <span className="rounded-full bg-kid-yellow/20 px-2.5 py-1 text-xs font-bold text-kid-orange">
-                  {credits} &#x2726;
-                </span>
-              )}
-              <div className="flex size-9 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
+            <div className="flex items-center gap-2">
+              <div className="grid size-8 place-items-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
                 {user.email?.charAt(0).toUpperCase() ?? "?"}
               </div>
-              <Button
-                variant="outline"
-                size="lg"
-                className="min-h-[44px] rounded-xl text-base font-semibold"
-                onClick={handleLogout}
-              >
-                <LogOut className="size-5" data-icon="inline-start" />
+              <Button variant="ghost" size="sm" onClick={handleLogout}>
+                <LogOut className="size-4" data-icon="inline-start" />
                 Logout
               </Button>
             </div>
           ) : (
-            <Button
-              size="lg"
-              className="ml-2 min-h-[44px] rounded-xl text-base font-semibold"
-              render={<Link href="/login" />}
-            >
-              <LogIn className="size-5" data-icon="inline-start" />
-              Login
+            <Button size="sm" render={<Link href="/login" />}>
+              Sign in
             </Button>
           )}
         </div>
 
-        {/* Mobile: theme toggle + menu */}
+        {/* Mobile */}
         <div className="flex items-center gap-1 sm:hidden">
           <ThemeToggle />
           <Button
             variant="ghost"
             size="icon-lg"
             className="min-h-[44px] min-w-[44px] rounded-xl"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
           >
-            {mobileMenuOpen ? (
-              <X className="size-6" />
-            ) : (
-              <Menu className="size-6" />
-            )}
+            {mobileMenuOpen ? <X className="size-6" /> : <Menu className="size-6" />}
           </Button>
         </div>
       </div>
 
-      {/* Mobile Navigation */}
+      {/* Mobile menu */}
       {mobileMenuOpen && (
-        <div className="border-t border-border/40 bg-background px-4 pb-4 pt-2 sm:hidden">
+        <div className="border-t border-border bg-background px-4 pb-4 pt-2 sm:hidden">
           <div className="flex flex-col gap-2">
-            <Button
-              variant="ghost"
-              size="lg"
-              className="min-h-[44px] w-full justify-start rounded-xl text-base font-semibold"
-              render={<Link href="/explore" />}
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              <BookOpen className="size-5" data-icon="inline-start" />
-              Explore
-            </Button>
-
-            {user && (
-              <Button
-                variant="ghost"
-                size="lg"
-                className="min-h-[44px] w-full justify-start rounded-xl text-base font-semibold"
-                render={<Link href="/dashboard" />}
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <LayoutDashboard className="size-5" data-icon="inline-start" />
-                Dashboard
-              </Button>
-            )}
-
-            {user && (
-              <Button
-                variant="ghost"
-                size="lg"
-                className="min-h-[44px] w-full justify-start rounded-xl text-base font-semibold"
-                render={<Link href="/library" />}
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <Library className="size-5" data-icon="inline-start" />
-                My Library
-              </Button>
-            )}
-
+            {navLinks.map(({ href, label }) => {
+              if ((href === "/dashboard" || href === "/library") && !user) return null;
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="rounded-xl px-3 py-3 text-base font-semibold hover:bg-muted"
+                >
+                  {label}
+                </Link>
+              );
+            })}
             {user?.role === "admin" && (
-              <Button
-                variant="ghost"
-                size="lg"
-                className="min-h-[44px] w-full justify-start rounded-xl text-base font-semibold"
-                render={<Link href="/admin" />}
+              <Link
+                href="/admin"
                 onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2 rounded-xl px-3 py-3 text-base font-semibold hover:bg-muted"
               >
-                <Shield className="size-5" data-icon="inline-start" />
+                <Shield className="size-5" />
                 Admin
-              </Button>
+              </Link>
             )}
-
             {user ? (
               <>
-                <div className="flex items-center gap-2 px-2.5 py-2 text-sm text-muted-foreground">
-                  <div className="flex size-8 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+                <div className="flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground">
+                  <div className="grid size-8 place-items-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
                     {user.email?.charAt(0).toUpperCase() ?? "?"}
                   </div>
                   <span className="truncate">{user.email}</span>
                 </div>
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="min-h-[44px] w-full justify-start rounded-xl text-base font-semibold"
+                <button
                   onClick={handleLogout}
+                  className="flex items-center gap-2 rounded-xl px-3 py-3 text-base font-semibold hover:bg-muted"
                 >
-                  <LogOut className="size-5" data-icon="inline-start" />
+                  <LogOut className="size-5" />
                   Logout
-                </Button>
+                </button>
               </>
             ) : (
-              <Button
-                size="lg"
-                className="min-h-[44px] w-full justify-start rounded-xl text-base font-semibold"
-                render={<Link href="/login" />}
+              <Link
+                href="/login"
                 onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2 rounded-xl bg-ink px-3 py-3 text-base font-semibold text-background"
               >
-                <LogIn className="size-5" data-icon="inline-start" />
-                Login
-              </Button>
+                <LogIn className="size-5" />
+                Sign in
+              </Link>
             )}
           </div>
         </div>

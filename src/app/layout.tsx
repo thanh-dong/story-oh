@@ -1,16 +1,22 @@
 import type { Metadata, Viewport } from "next";
-import { Nunito, Geist_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono } from "next/font/google";
+import { Fraunces } from "next/font/google";
 import { Navbar } from "@/components/navbar";
 import "./globals.css";
 
-const nunito = Nunito({
+const inter = Inter({
   variable: "--font-sans",
   subsets: ["latin"],
-  weight: ["400", "600", "700", "800"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const fraunces = Fraunces({
+  variable: "--font-display",
+  subsets: ["latin"],
+  axes: ["SOFT", "WONK", "opsz"],
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-mono",
   subsets: ["latin"],
 });
 
@@ -34,14 +40,12 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${nunito.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${inter.variable} ${fraunces.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <Navbar />
         <main className="flex-1">
-          <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-10">
-            {children}
-          </div>
+          {children}
         </main>
         <footer className="border-t border-border/40 py-6 text-center text-xs text-muted-foreground/60">
           StoryTime &mdash; Stories that teach, choices that matter

@@ -52,7 +52,7 @@ export default async function StoryDetailPage({
   const totalPages = Object.keys(story.story_tree).length;
 
   return (
-    <div className="mx-auto max-w-2xl animate-fade-up pb-12">
+    <div className="mx-auto max-w-2xl animate-fade-up px-4 py-6 pb-12 sm:px-6 sm:py-10">
       <StoryCover
         title={story.title}
         coverImage={story.cover_image}

@@ -41,7 +41,7 @@ export default function UserEditStoryPage() {
 
   if (loading) {
     return (
-      <div className="space-y-6">
+      <div className="mx-auto max-w-5xl space-y-6 px-4 py-6 sm:px-6 sm:py-10">
         <div className="h-8 w-48 animate-pulse rounded-lg bg-muted" />
         <div className="h-64 animate-pulse rounded-2xl bg-muted" />
       </div>
@@ -61,7 +61,7 @@ export default function UserEditStoryPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="mx-auto max-w-5xl space-y-6 px-4 py-6 sm:px-6 sm:py-10">
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="icon" className="rounded-lg" render={<Link href="/library" />}>
           <ArrowLeft className="size-5" />

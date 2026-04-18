@@ -10,7 +10,7 @@ export default async function SignupPage() {
   const isDev = process.env.NODE_ENV === "development";
 
   return (
-    <div className="flex flex-col items-center py-12 sm:py-20">
+    <div className="flex flex-col items-center px-4 py-12 sm:px-6 sm:py-20">
       <div className="w-full max-w-sm animate-fade-up space-y-6">
         <div className="text-center">
           <span className="inline-block text-5xl" aria-hidden="true">&#x2728;</span>

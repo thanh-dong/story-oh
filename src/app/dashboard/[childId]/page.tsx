@@ -104,7 +104,7 @@ export default async function ChildManagePage({
   ).length;
 
   return (
-    <div className="space-y-8">
+    <div className="mx-auto max-w-5xl space-y-8 px-4 py-6 sm:px-6 sm:py-10">
       {/* Header */}
       <div className="animate-fade-up">
         <div className="mb-4">

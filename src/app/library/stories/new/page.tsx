@@ -64,7 +64,7 @@ export default function UserCreateStoryPage() {
     : undefined;
 
   return (
-    <div className="space-y-6">
+    <div className="mx-auto max-w-5xl space-y-6 px-4 py-6 sm:px-6 sm:py-10">
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="icon" className="rounded-lg" render={<Link href="/library" />}>
           <ArrowLeft className="size-5" />

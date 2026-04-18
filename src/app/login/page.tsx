@@ -11,7 +11,7 @@ export default async function LoginPage() {
   const hasGoogle = !!process.env.GOOGLE_CLIENT_ID;
 
   return (
-    <div className="flex min-h-[60vh] flex-col items-center justify-center py-12 sm:flex-row sm:gap-12 sm:py-0">
+    <div className="flex min-h-[60vh] flex-col items-center justify-center px-4 py-12 sm:flex-row sm:gap-12 sm:px-6 sm:py-0">
       <div className="hidden sm:flex sm:w-1/2 sm:items-center sm:justify-center">
         <div className="relative flex size-64 items-center justify-center rounded-3xl bg-gradient-to-br from-primary/20 via-kid-purple/20 to-kid-pink/10">
           <BookOpen className="size-16 text-primary/60" />

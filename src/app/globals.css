@@ -8,8 +8,9 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
+  --font-mono: var(--font-mono);
+  --font-display: var(--font-display);
+  --font-heading: var(--font-display);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -53,6 +54,8 @@
   --color-kid-green: var(--kid-green);
   --color-kid-purple: var(--kid-purple);
   --color-parchment: var(--parchment);
+  --color-parchment-2: var(--parchment-2);
+  --color-ink: var(--ink);
   --color-warm-shadow: var(--warm-shadow);
 }
 
@@ -98,6 +101,8 @@
   --kid-purple: oklch(0.65 0.18 290);
   /* Storybook extras */
   --parchment: oklch(0.95 0.02 80);
+  --parchment-2: oklch(0.93 0.03 80);
+  --ink: oklch(0.25 0.03 55);
   --warm-shadow: oklch(0.45 0.05 55 / 12%);
 }
 
@@ -140,6 +145,8 @@
   --kid-green: oklch(0.68 0.14 155);
   --kid-purple: oklch(0.72 0.15 290);
   --parchment: oklch(0.23 0.02 55);
+  --parchment-2: oklch(0.20 0.02 55);
+  --ink: oklch(0.92 0.02 80);
   --warm-shadow: oklch(0.1 0.02 55 / 30%);
 }
 
@@ -153,6 +160,31 @@
   html {
     @apply font-sans scroll-smooth;
   }
+}
+
+/* Editorial typography classes */
+.display {
+  font-family: var(--font-display), ui-serif, Georgia, serif;
+  font-optical-sizing: auto;
+  font-variation-settings: 'SOFT' 50, 'WONK' 0;
+  letter-spacing: -0.02em;
+}
+
+.mono {
+  font-family: var(--font-mono), ui-monospace, monospace;
+}
+
+.grain {
+  position: relative;
+}
+.grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.05;
+  mix-blend-mode: multiply;
 }
 
 /* Storybook page texture — subtle noise overlay */
