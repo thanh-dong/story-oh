@@ -1,38 +1,9 @@
 import React from "react";
 import Link from "next/link";
-import Image from "next/image";
-import { db } from "@/lib/db";
-import { stories as storiesTable } from "@/lib/db/schema";
-import { desc, isNull } from "drizzle-orm";
 import { BookCover, Ornament, Stamp, CornerFold } from "@/components/editorial";
-import type { StoryTree } from "@/lib/types";
+import { HomeFeatured } from "./home-featured";
 
-export const dynamic = "force-dynamic";
-
-// Palette lookup for book covers based on title hash
-const coverPalettes: [string, string][] = [
-  ["#D98A5B", "#8E3A2B"],
-  ["#6E5FA8", "#3C2F6A"],
-  ["#4D8F78", "#1F4F3F"],
-  ["#C88A3F", "#7A3E1F"],
-  ["#4D728F", "#1F3B52"],
-  ["#8A5893", "#432948"],
-];
-
-function getPalette(title: string): [string, string] {
-  let hash = 0;
-  for (let i = 0; i < title.length; i++) hash = title.charCodeAt(i) + ((hash << 5) - hash);
-  return coverPalettes[Math.abs(hash) % coverPalettes.length];
-}
-
-export default async function Home() {
-  const storyList = await db
-    .select()
-    .from(storiesTable)
-    .where(isNull(storiesTable.created_by))
-    .orderBy(desc(storiesTable.created_at))
-    .limit(3);
-
+export default function Home() {
   return (
     <div className="bg-background text-foreground">
       {/* ─── HERO ─── */}
@@ -168,77 +139,31 @@ export default async function Home() {
       </section>
 
       {/* ─── FEATURED STORIES ─── */}
-      {storyList.length > 0 && (
-        <section className="px-4 py-16 sm:px-10">
-          <div className="mx-auto max-w-[1360px]">
-            <div className="mb-7 flex items-baseline justify-between">
-              <div>
-                <span className="mono text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                  Chapter II &mdash; Featured
-                </span>
-                <h2
-                  className="display mt-2.5 text-3xl font-black sm:text-[44px]"
-                  style={{ letterSpacing: "-0.02em" }}
-                >
-                  This week&rsquo;s shelf.
-                </h2>
-              </div>
-              <Link
-                href="/explore"
-                className="text-sm font-bold text-foreground hover:text-primary"
+      <section className="px-4 py-16 sm:px-10">
+        <div className="mx-auto max-w-[1360px]">
+          <div className="mb-7 flex items-baseline justify-between">
+            <div>
+              <span className="mono text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                Chapter II &mdash; Featured
+              </span>
+              <h2
+                className="display mt-2.5 text-3xl font-black sm:text-[44px]"
+                style={{ letterSpacing: "-0.02em" }}
               >
-                See all &rarr;
-              </Link>
+                This week&rsquo;s shelf.
+              </h2>
             </div>
-
-            <div className="grid gap-[22px] sm:grid-cols-2 lg:grid-cols-3">
-              {storyList.map((story) => {
-                const palette = getPalette(story.title);
-                const tree = story.story_tree as StoryTree;
-                const nodeCount = Object.keys(tree).length;
-                const endingCount = Object.values(tree).filter((n) => n.choices.length === 0).length;
-
-                return (
-                  <Link
-                    key={story.id}
-                    href={`/story/${story.id}`}
-                    className="group overflow-hidden rounded-[18px] border border-border bg-card shadow-card transition-all hover:-translate-y-1 hover:shadow-elevated"
-                  >
-                    {story.cover_image ? (
-                      <div className="relative h-[240px] w-full overflow-hidden">
-                        <Image src={story.cover_image} alt={story.title} fill className="object-cover" sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" />
-                        <div className="absolute right-2.5 top-2.5 rounded-full bg-black/35 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-white backdrop-blur-[4px]">
-                          Ages {story.age_range}
-                        </div>
-                      </div>
-                    ) : (
-                      <BookCover title={story.title} palette={palette} tall tag={`Ages ${story.age_range}`} />
-                    )}
-                    <div className="p-5">
-                      <h3 className="display text-[22px] font-extrabold" style={{ letterSpacing: "-0.02em" }}>
-                        {story.title}
-                      </h3>
-                      <p className="mt-1.5 text-sm leading-normal text-muted-foreground line-clamp-2">
-                        {story.summary}
-                      </p>
-                      <div className="mt-3.5 flex items-center justify-between">
-                        <div className="flex gap-3.5 text-xs font-medium text-muted-foreground">
-                          <span>{nodeCount} pages</span>
-                          <span className="opacity-40">&middot;</span>
-                          <span>{endingCount} {endingCount === 1 ? "ending" : "endings"}</span>
-                        </div>
-                        <span className="text-[13px] font-bold text-primary">
-                          Read &rarr;
-                        </span>
-                      </div>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
+            <Link
+              href="/explore"
+              className="text-sm font-bold text-foreground hover:text-primary"
+            >
+              See all &rarr;
+            </Link>
           </div>
-        </section>
-      )}
+
+          <HomeFeatured />
+        </div>
+      </section>
 
       {/* ─── CTA BANNER ─── */}
       <section className="px-4 pb-16 sm:px-10">

@@ -15,7 +15,9 @@ export async function GET() {
     .from(children)
     .where(eq(children.parentId, session.user.id));
 
-  return NextResponse.json(list);
+  return NextResponse.json(list, {
+    headers: { "Cache-Control": "private, s-maxage=30, stale-while-revalidate=60" },
+  });
 }
 
 export async function POST(request: Request) {

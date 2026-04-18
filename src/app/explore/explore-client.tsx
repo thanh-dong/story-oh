@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import useSWR from "swr";
 import { BookCover, Pill, ShelfLabel } from "@/components/editorial";
 import { ShareStoryDialog } from "@/components/share-story-dialog";
 import type { Child, StoryTree } from "@/lib/types";
@@ -16,15 +17,11 @@ interface StoryData {
   summary: string;
   age_range: string;
   cover_image: string | null;
-  story_tree: unknown;
+  story_tree: StoryTree;
   created_at: string;
 }
 
-interface ExploreClientProps {
-  stories: StoryData[];
-  userChildren: Child[];
-  assignmentMap: Record<string, string[]>;
-}
+const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 const coverPalettes: [string, string][] = [
   ["#D98A5B", "#8E3A2B"],
@@ -48,9 +45,45 @@ function getLesson(title: string): string {
   return lessonKeywords[Math.abs(hash) % lessonKeywords.length];
 }
 
-export function ExploreClient({ stories, userChildren, assignmentMap }: ExploreClientProps) {
+export function ExploreClient() {
   const [filter, setFilter] = useState<Filter>("all");
   const [sort, setSort] = useState<Sort>("newest");
+
+  // Fetch stories via API (cached by SWR + CDN)
+  const { data: stories = [] } = useSWR<StoryData[]>("/api/stories/public", fetcher);
+
+  // Fetch user children + assignments (non-blocking, only for logged-in users)
+  const [userChildren, setUserChildren] = useState<Child[]>([]);
+  const [assignmentMap, setAssignmentMap] = useState<Record<string, string[]>>({});
+
+  useEffect(() => {
+    fetch("/api/children")
+      .then((r) => (r.ok ? r.json() : []))
+      .then((children: Child[]) => {
+        setUserChildren(children);
+        if (children.length > 0) {
+          Promise.all(
+            children.map((c) =>
+              fetch(`/api/children/${c.id}/stories`)
+                .then((r) => (r.ok ? r.json() : []))
+                .then((assigned: { storyId: string }[]) =>
+                  assigned.map((a) => ({ childId: c.id, storyId: a.storyId }))
+                )
+            )
+          ).then((results) => {
+            const map: Record<string, string[]> = {};
+            for (const assignments of results) {
+              for (const a of assignments) {
+                if (!map[a.storyId]) map[a.storyId] = [];
+                map[a.storyId].push(a.childId);
+              }
+            }
+            setAssignmentMap(map);
+          });
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const youngCount = stories.filter((s) => s.age_range === "4-8").length;
   const olderCount = stories.filter((s) => s.age_range === "8-12").length;
@@ -76,6 +109,29 @@ export function ExploreClient({ stories, userChildren, assignmentMap }: ExploreC
     { label: "Ages 4–8", value: "4-8", count: youngCount },
     { label: "Ages 8–12", value: "8-12", count: olderCount },
   ];
+
+  if (stories.length === 0) {
+    // Loading skeleton
+    return (
+      <div className="animate-pulse">
+        <div className="mt-8 flex gap-2 border-y border-border py-3.5">
+          {[1, 2, 3].map((i) => <div key={i} className="h-9 w-24 rounded-full bg-muted" />)}
+        </div>
+        <div className="mt-10 grid gap-[22px] sm:grid-cols-2 lg:grid-cols-3">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="overflow-hidden rounded-[18px] border border-border bg-card">
+              <div className="h-[240px] bg-muted" />
+              <div className="p-5">
+                <div className="mb-2 h-4 w-20 rounded bg-muted" />
+                <div className="mb-2 h-5 w-3/4 rounded bg-muted" />
+                <div className="h-4 w-full rounded bg-muted" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -108,7 +164,6 @@ export function ExploreClient({ stories, userChildren, assignmentMap }: ExploreC
         </button>
       </div>
 
-      {/* Story shelves */}
       {filter === "all" ? (
         <>
           {youngStories.length > 0 && (
@@ -121,84 +176,43 @@ export function ExploreClient({ stories, userChildren, assignmentMap }: ExploreC
             <Shelf roman="III" title="More Stories" sub="Additional adventures" stories={otherStories} userChildren={userChildren} assignmentMap={assignmentMap} />
           )}
         </>
+      ) : filtered.length > 0 ? (
+        <div className="pb-16 pt-8">
+          <div className="grid gap-[22px] sm:grid-cols-2 lg:grid-cols-3">
+            {filtered.map((story) => (
+              <StoryCardLg key={story.id} story={story} childrenList={userChildren} assignedChildIds={assignmentMap[story.id] ?? []} />
+            ))}
+          </div>
+        </div>
       ) : (
-        filtered.length > 0 ? (
-          <div className="px-4 pb-16 pt-8 sm:px-10">
-            <div className="mx-auto max-w-[1360px]">
-              <div className="grid gap-[22px] sm:grid-cols-2 lg:grid-cols-3">
-                {filtered.map((story) => (
-                  <StoryCardLg
-                    key={story.id}
-                    story={story}
-                    childrenList={userChildren}
-                    assignedChildIds={assignmentMap[story.id] ?? []}
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="flex flex-col items-center gap-6 rounded-3xl bg-parchment py-24 text-center mx-4 sm:mx-10 mb-16 mt-8">
-            <p className="text-xl font-bold">No stories in this category</p>
-          </div>
-        )
-      )}
-
-      {stories.length === 0 && (
-        <div className="flex flex-col items-center gap-6 rounded-3xl bg-parchment py-24 text-center mx-4 sm:mx-10 mb-16">
-          <p className="text-xl font-bold">No stories yet</p>
-          <p className="text-muted-foreground">New adventures are being written. Check back soon!</p>
+        <div className="mt-8 flex flex-col items-center gap-6 rounded-3xl bg-parchment py-24 text-center">
+          <p className="text-xl font-bold">No stories in this category</p>
         </div>
       )}
     </>
   );
 }
 
-function Shelf({
-  roman,
-  title,
-  sub,
-  stories,
-  userChildren,
-  assignmentMap,
-}: {
-  roman: string;
-  title: string;
-  sub: string;
-  stories: StoryData[];
-  userChildren: Child[];
-  assignmentMap: Record<string, string[]>;
+function Shelf({ roman, title, sub, stories, userChildren, assignmentMap }: {
+  roman: string; title: string; sub: string; stories: StoryData[]; userChildren: Child[]; assignmentMap: Record<string, string[]>;
 }) {
   return (
-    <div className="px-4 pb-7 pt-8 sm:px-10">
-      <div className="mx-auto max-w-[1360px]">
-        <ShelfLabel roman={roman} title={title} sub={sub} />
-        <div className="grid gap-[22px] sm:grid-cols-2 lg:grid-cols-3">
-          {stories.map((story) => (
-            <StoryCardLg
-              key={story.id}
-              story={story}
-              childrenList={userChildren}
-              assignedChildIds={assignmentMap[story.id] ?? []}
-            />
-          ))}
-        </div>
+    <div className="pb-7 pt-8">
+      <ShelfLabel roman={roman} title={title} sub={sub} />
+      <div className="grid gap-[22px] sm:grid-cols-2 lg:grid-cols-3">
+        {stories.map((story) => (
+          <StoryCardLg key={story.id} story={story} childrenList={userChildren} assignedChildIds={assignmentMap[story.id] ?? []} />
+        ))}
       </div>
     </div>
   );
 }
 
-function StoryCardLg({
-  story,
-  childrenList,
-  assignedChildIds,
-}: {
-  story: StoryData;
-  childrenList: Child[];
-  assignedChildIds: string[];
+function StoryCardLg({ story, childrenList, assignedChildIds }: {
+  story: StoryData; childrenList: Child[]; assignedChildIds: string[];
 }) {
   const palette = getPalette(story.title);
-  const tree = story.story_tree as StoryTree;
+  const tree = story.story_tree;
   const nodeCount = Object.keys(tree).length;
   const endingCount = Object.values(tree).filter((n) => n.choices.length === 0).length;
   const lesson = getLesson(story.title);
@@ -207,11 +221,7 @@ function StoryCardLg({
     <div className="group relative flex flex-col overflow-hidden rounded-[18px] border border-border bg-card shadow-card">
       {childrenList.length > 0 && (
         <div className="absolute left-3 top-3 z-10">
-          <ShareStoryDialog
-            storyId={story.id}
-            childrenList={childrenList}
-            assignedChildIds={assignedChildIds}
-          />
+          <ShareStoryDialog storyId={story.id} childrenList={childrenList} assignedChildIds={assignedChildIds} />
         </div>
       )}
       <Link href={`/story/${story.id}`} className="block">
@@ -231,22 +241,16 @@ function StoryCardLg({
           <Pill tone="purple">{lesson}</Pill>
         </div>
         <Link href={`/story/${story.id}`}>
-          <h3 className="display text-[22px] font-extrabold" style={{ letterSpacing: "-0.02em" }}>
-            {story.title}
-          </h3>
+          <h3 className="display text-[22px] font-extrabold" style={{ letterSpacing: "-0.02em" }}>{story.title}</h3>
         </Link>
-        <p className="mt-1.5 mb-3 flex-1 text-sm leading-normal text-muted-foreground line-clamp-2">
-          {story.summary}
-        </p>
+        <p className="mb-3 mt-1.5 flex-1 text-sm leading-normal text-muted-foreground line-clamp-2">{story.summary}</p>
         <div className="flex items-center justify-between border-t border-dashed border-border pt-3">
           <div className="flex gap-3 text-[11px] font-semibold uppercase tracking-[0.04em] text-muted-foreground">
             <span>{nodeCount}p</span>
             <span className="opacity-40">&middot;</span>
             <span>{endingCount} endings</span>
           </div>
-          <Link href={`/story/${story.id}`} className="text-[13px] font-bold text-primary">
-            Open &rarr;
-          </Link>
+          <Link href={`/story/${story.id}`} className="text-[13px] font-bold text-primary">Open &rarr;</Link>
         </div>
       </div>
     </div>
