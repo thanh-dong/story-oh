@@ -168,7 +168,7 @@ export default function Home() {
       {/* ─── CTA BANNER ─── */}
       <section className="px-4 pb-16 sm:px-10">
         <div className="mx-auto max-w-[1360px]">
-          <div className="relative overflow-hidden rounded-3xl bg-ink p-10 text-white sm:p-14">
+          <div className="relative overflow-hidden rounded-3xl p-10 text-white sm:p-14" style={{ background: "oklch(0.22 0.03 55)" }}>
             {/* decorative edge */}
             <div className="pointer-events-none absolute inset-4 rounded-2xl border border-white/15" />
 
@@ -194,7 +194,7 @@ export default function Home() {
                 <div className="mt-7 flex items-center gap-3">
                   <Link
                     href="/signup"
-                    className="inline-flex rounded-full bg-white px-6 py-4 text-base font-bold text-ink"
+                    className="inline-flex rounded-full bg-white px-6 py-4 text-base font-bold" style={{ color: "oklch(0.22 0.03 55)" }}
                   >
                     Get started &mdash; free
                   </Link>
