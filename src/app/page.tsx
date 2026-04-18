@@ -1,5 +1,6 @@
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { db } from "@/lib/db";
 import { stories as storiesTable } from "@/lib/db/schema";
 import { desc, isNull } from "drizzle-orm";
@@ -92,9 +93,9 @@ export default async function Home() {
               </Link>
             </div>
             <div className="mt-7 flex gap-5 text-xs font-medium text-muted-foreground">
-              <span>&check; 42 adventures</span>
-              <span>&check; 8 languages</span>
-              <span>&check; No ads, ever</span>
+              <span>&#x2713; 42 adventures</span>
+              <span>&#x2713; 8 languages</span>
+              <span>&#x2713; No ads, ever</span>
             </div>
           </div>
 
@@ -201,7 +202,16 @@ export default async function Home() {
                     href={`/story/${story.id}`}
                     className="group overflow-hidden rounded-[18px] border border-border bg-card shadow-card transition-all hover:-translate-y-1 hover:shadow-elevated"
                   >
-                    <BookCover title={story.title} palette={palette} tall tag={`Ages ${story.age_range}`} />
+                    {story.cover_image ? (
+                      <div className="relative h-[240px] w-full overflow-hidden">
+                        <Image src={story.cover_image} alt={story.title} fill className="object-cover" sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" />
+                        <div className="absolute right-2.5 top-2.5 rounded-full bg-black/35 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-white backdrop-blur-[4px]">
+                          Ages {story.age_range}
+                        </div>
+                      </div>
+                    ) : (
+                      <BookCover title={story.title} palette={palette} tall tag={`Ages ${story.age_range}`} />
+                    )}
                     <div className="p-5">
                       <h3 className="display text-[22px] font-extrabold" style={{ letterSpacing: "-0.02em" }}>
                         {story.title}

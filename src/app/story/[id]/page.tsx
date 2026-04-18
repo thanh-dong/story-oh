@@ -1,28 +1,26 @@
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { stories as storiesTable } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
-import { StoryCover } from "@/components/story-cover";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { BookCover, Ornament, Pill, Stamp } from "@/components/editorial";
 import type { StoryTree } from "@/lib/types";
 
-function countChoices(tree: StoryTree): number {
-  let total = 0;
-  for (const node of Object.values(tree)) {
-    total += node.choices.length;
-  }
-  return total;
-}
+const coverPalettes: [string, string][] = [
+  ["#D98A5B", "#8E3A2B"],
+  ["#6E5FA8", "#3C2F6A"],
+  ["#4D8F78", "#1F4F3F"],
+  ["#C88A3F", "#7A3E1F"],
+  ["#4D728F", "#1F3B52"],
+  ["#8A5893", "#432948"],
+];
 
-function countEndings(tree: StoryTree): number {
-  let endings = 0;
-  for (const node of Object.values(tree)) {
-    if (node.choices.length === 0) endings++;
-  }
-  return endings;
+function getPalette(title: string): [string, string] {
+  let hash = 0;
+  for (let i = 0; i < title.length; i++) hash = title.charCodeAt(i) + ((hash << 5) - hash);
+  return coverPalettes[Math.abs(hash) % coverPalettes.length];
 }
 
 export default async function StoryDetailPage({
@@ -39,7 +37,6 @@ export default async function StoryDetailPage({
 
   if (!story) notFound();
 
-  // Private stories only accessible by their creator
   if (story.created_by) {
     const session = await getSession();
     if (!session || session.user.id !== story.created_by) {
@@ -47,55 +44,86 @@ export default async function StoryDetailPage({
     }
   }
 
-  const totalChoices = countChoices(story.story_tree);
-  const totalEndings = countEndings(story.story_tree);
-  const totalPages = Object.keys(story.story_tree).length;
+  const tree = story.story_tree as StoryTree;
+  const totalPages = Object.keys(tree).length;
+  const totalEndings = Object.values(tree).filter((n) => n.choices.length === 0).length;
+  const totalChoices = Object.values(tree).reduce((s, n) => s + n.choices.length, 0);
+  const palette = getPalette(story.title);
 
   return (
-    <div className="mx-auto max-w-2xl animate-fade-up px-4 py-6 pb-12 sm:px-6 sm:py-10">
-      <StoryCover
-        title={story.title}
-        coverImage={story.cover_image}
-        heightClass="h-48 sm:h-64 rounded-2xl storybook-shadow"
-        emojiClass="text-7xl drop-shadow-lg sm:text-8xl"
-      />
+    <div className="bg-background text-foreground">
+      <div className="mx-auto max-w-3xl px-4 pb-16 pt-8 sm:px-6">
+        {/* Back link */}
+        <Link
+          href="/explore"
+          className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground"
+        >
+          &larr; Back to library
+        </Link>
 
-      {/* Story info */}
-      <div className="mt-8 space-y-6">
-        <div className="flex flex-wrap items-start gap-3">
-          <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
+        {/* Cover */}
+        <div className="overflow-hidden rounded-[18px] shadow-elevated">
+          {story.cover_image ? (
+            <div className="relative h-[280px] w-full sm:h-[360px]">
+              <Image src={story.cover_image} alt={story.title} fill className="object-cover" sizes="(max-width: 768px) 100vw, 768px" />
+              <div className="absolute right-3 top-3 rounded-full bg-black/35 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.1em] text-white backdrop-blur-[4px]">
+                Ages {story.age_range}
+              </div>
+            </div>
+          ) : (
+            <BookCover title={story.title} palette={palette} tall tag={`Ages ${story.age_range}`} />
+          )}
+        </div>
+
+        {/* Info */}
+        <div className="mt-8">
+          <div className="mb-3 flex items-center gap-2">
+            <Pill tone="primary">Ages {story.age_range}</Pill>
+          </div>
+
+          <h1
+            className="display text-3xl font-black sm:text-[44px]"
+            style={{ letterSpacing: "-0.02em" }}
+          >
             {story.title}
           </h1>
-          <Badge variant="secondary" className="mt-1.5 text-sm">
-            Ages {story.age_range}
-          </Badge>
-        </div>
 
-        <p className="text-lg leading-relaxed text-muted-foreground">
-          {story.summary}
-        </p>
+          <p className="mt-4 text-lg leading-relaxed text-muted-foreground">
+            {story.summary}
+          </p>
 
-        {/* Stats */}
-        <div className="flex flex-wrap gap-4 rounded-2xl bg-parchment p-4 text-sm font-medium text-muted-foreground">
-          <div className="flex items-center gap-1.5">
-            <span aria-hidden="true">&#x1F4D6;</span>
-            <span>{totalPages} pages</span>
+          {/* Stats */}
+          <div className="mt-6 grid grid-cols-3 gap-3">
+            {[
+              { n: totalPages, label: "Pages", tone: "primary" as const },
+              { n: totalChoices, label: "Choices", tone: "orange" as const },
+              { n: totalEndings, label: "Endings", tone: "purple" as const },
+            ].map((s) => (
+              <div key={s.label} className="flex items-center gap-3 rounded-[14px] border border-border bg-parchment px-4 py-3">
+                <Stamp n={s.n} tone={s.tone} />
+                <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                  {s.label}
+                </div>
+              </div>
+            ))}
           </div>
-          <div className="flex items-center gap-1.5">
-            <span aria-hidden="true">&#x1F500;</span>
-            <span>{totalChoices} choices</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span aria-hidden="true">&#x2728;</span>
-            <span>{totalEndings} {totalEndings === 1 ? "ending" : "endings"}</span>
-          </div>
-        </div>
 
-        <Link href={`/story/${story.id}/read`} className="block">
-          <Button size="lg" className="w-full rounded-full py-6 text-lg font-bold storybook-shadow transition-shadow hover:storybook-shadow-lg">
+          {/* CTA */}
+          <Link
+            href={`/story/${story.id}/read`}
+            className="mt-8 flex items-center justify-center gap-2 rounded-full bg-ink px-8 py-4 text-lg font-bold text-background shadow-elevated transition-all hover:-translate-y-0.5 hover:shadow-card"
+          >
+            <Ornament kind="star" size={16} color="var(--background)" />
             Start Reading
-          </Button>
-        </Link>
+          </Link>
+        </div>
+
+        {/* Decorative ornaments */}
+        <div className="mt-8 flex items-center justify-center gap-3">
+          <Ornament kind="diamond" size={10} color="var(--kid-orange)" />
+          <Ornament kind="star" size={12} color="var(--kid-yellow)" />
+          <Ornament kind="diamond" size={10} color="var(--kid-pink)" />
+        </div>
       </div>
     </div>
   );

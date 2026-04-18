@@ -1,8 +1,6 @@
 "use client";
 
-import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { ChildForm } from "@/components/child-form";
 
 export default function NewChildPage() {
@@ -16,23 +14,37 @@ export default function NewChildPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 px-4 py-6 sm:px-6 sm:py-10">
-      <div className="flex items-center gap-4 animate-fade-up">
-        <Button
-          variant="ghost"
-          size="lg"
-          className="min-h-[44px] rounded-xl"
-          render={<Link href="/dashboard" />}
-        >
-          <ArrowLeft className="size-5" data-icon="inline-start" />
-          Back
-        </Button>
-        <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
-          Add Child
-        </h1>
-      </div>
+    <div className="bg-background text-foreground">
+      <div className="px-4 pb-16 pt-10 sm:px-10">
+        <div className="mx-auto max-w-2xl">
+          <div className="mb-[18px] flex items-center gap-2.5">
+            <div className="h-px w-10 bg-ink" />
+            <span className="mono text-[11px] font-semibold uppercase tracking-[0.18em] text-ink">
+              New Reader
+            </span>
+          </div>
 
-      <ChildForm onSubmit={handleCreate} submitLabel="Add Child" />
+          <div className="mb-2">
+            <Link
+              href="/dashboard"
+              className="text-sm font-semibold text-muted-foreground hover:text-foreground"
+            >
+              &larr; Back to dashboard
+            </Link>
+          </div>
+
+          <h1
+            className="display mb-8 text-3xl font-black sm:text-[44px]"
+            style={{ letterSpacing: "-0.02em" }}
+          >
+            Add a <em className="font-medium italic text-primary">child</em>.
+          </h1>
+
+          <div className="rounded-[18px] border border-border bg-card p-6 shadow-card sm:p-8">
+            <ChildForm onSubmit={handleCreate} submitLabel="Add Child" />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
