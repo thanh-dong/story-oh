@@ -50,7 +50,9 @@ interface ChildFormProps {
 export function ChildForm({ initialData, onSubmit, submitLabel }: ChildFormProps) {
   const router = useRouter();
   const [name, setName] = useState(initialData?.name ?? "");
-  const [dateOfBirth, setDateOfBirth] = useState(initialData?.dateOfBirth ?? "");
+  const [yearOfBirth, setYearOfBirth] = useState(
+    initialData?.dateOfBirth ? initialData.dateOfBirth.slice(0, 4) : ""
+  );
   const [avatar, setAvatar] = useState(initialData?.avatar ?? AVATAR_OPTIONS[0]);
   const [nativeLanguage, setNativeLanguage] = useState(initialData?.nativeLanguage ?? "en");
   const [learningLanguages, setLearningLanguages] = useState<string[]>(
@@ -94,7 +96,7 @@ export function ChildForm({ initialData, onSubmit, submitLabel }: ChildFormProps
     try {
       await onSubmit({
         name,
-        dateOfBirth,
+        dateOfBirth: yearOfBirth ? `${yearOfBirth}-01-01` : "",
         avatar,
         nativeLanguage,
         learningLanguages,
@@ -129,17 +131,26 @@ export function ChildForm({ initialData, onSubmit, submitLabel }: ChildFormProps
         />
       </div>
 
-      {/* Date of Birth */}
+      {/* Year of Birth */}
       <div className="space-y-2">
-        <Label htmlFor="dob">Date of Birth</Label>
+        <Label htmlFor="yob">Year of Birth</Label>
         <Input
-          id="dob"
-          type="date"
+          id="yob"
+          type="number"
+          inputMode="numeric"
           required
-          value={dateOfBirth}
-          onChange={(e) => setDateOfBirth(e.target.value)}
+          min={new Date().getFullYear() - 18}
+          max={new Date().getFullYear()}
+          step={1}
+          placeholder="e.g. 2018"
+          value={yearOfBirth}
+          onChange={(e) => setYearOfBirth(e.target.value.replace(/\D/g, "").slice(0, 4))}
           className="rounded-xl"
         />
+        <p className="text-xs text-muted-foreground">
+          Why we ask: it helps us choose suitable words, sentence length, and story themes.
+          We only ask for the year — not the full date.
+        </p>
       </div>
 
       {/* Avatar */}

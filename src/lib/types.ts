@@ -40,6 +40,7 @@ export interface UserStory {
 
 export interface GenerateStoryRequest {
   keyword: string;
+  description?: string;
   language: "en" | "vi" | "de";
   audienceAge: "4-8" | "8-12";
   isForChildren: boolean;

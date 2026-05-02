@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { Loader2 } from "lucide-react";
 import {
   Select,
@@ -29,6 +30,7 @@ export function GenerateStoryForm({
   onCreditsUsed,
 }: GenerateStoryFormProps) {
   const [keyword, setKeyword] = useState("");
+  const [description, setDescription] = useState("");
   const [language, setLanguage] = useState<"en" | "vi" | "de">("en");
   const [audienceAge, setAudienceAge] = useState<"4-8" | "8-12">("4-8");
   const [isForChildren, setIsForChildren] = useState(true);
@@ -57,6 +59,7 @@ export function GenerateStoryForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           keyword: keyword.trim(),
+          description: description.trim() || undefined,
           language,
           audienceAge,
           isForChildren,
@@ -129,6 +132,20 @@ export function GenerateStoryForm({
           onChange={(e) => setKeyword(e.target.value)}
           placeholder="e.g., dragons, space exploration, friendship"
           required
+        />
+      </div>
+
+      <div className="space-y-2">
+        <div className="flex items-baseline justify-between">
+          <Label htmlFor="description">Short description <span className="text-muted-foreground font-normal">(optional)</span></Label>
+          <span className="text-xs text-muted-foreground">{description.length}/1000</span>
+        </div>
+        <Textarea
+          id="description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value.slice(0, 1000))}
+          placeholder="Describe the story idea in a few sentences. The AI will use it as the seed."
+          rows={4}
         />
       </div>
 

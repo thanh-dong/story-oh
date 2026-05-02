@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { StoryForm } from "@/components/admin/story-form";
 import { GenerateStoryForm } from "@/components/admin/generate-story-form";
@@ -11,8 +11,11 @@ type Mode = "manual" | "generate";
 
 export default function UserCreateStoryPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [saving, setSaving] = useState(false);
-  const [mode, setMode] = useState<Mode>("manual");
+  const [mode, setMode] = useState<Mode>(
+    searchParams.get("mode") === "manual" ? "manual" : "generate"
+  );
   const [generatedData, setGeneratedData] = useState<GenerateStoryResponse | null>(null);
   const [credits, setCredits] = useState<number | undefined>(undefined);
 

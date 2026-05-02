@@ -77,6 +77,24 @@ export function DashboardClient() {
         </div>
       </div>
 
+      {/* Quick actions */}
+      {childrenWithStats.length > 0 && (
+        <div className="px-4 pt-6 sm:px-10">
+          <div className="mx-auto flex max-w-[1360px] flex-wrap items-center gap-3">
+            <Link href="/library/stories/new?mode=generate">
+              <Button size="lg" className="rounded-full px-7 font-bold">
+                {"✨"} Quick Generate Fun Story
+              </Button>
+            </Link>
+            <Link href="/dashboard/new">
+              <Button size="lg" variant="outline" className="rounded-full px-7 font-bold">
+                + Add Child
+              </Button>
+            </Link>
+          </div>
+        </div>
+      )}
+
       {/* Children */}
       {childrenWithStats.length > 0 ? (
         <div className="px-4 pt-9 sm:px-10">
@@ -105,11 +123,18 @@ export function DashboardClient() {
                 Add your children to create personalized learning experiences
               </p>
             </div>
-            <Link href="/dashboard/new">
-              <Button size="lg" className="rounded-full px-8 text-lg font-bold">
-                + Add Your First Child
-              </Button>
-            </Link>
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <Link href="/dashboard/new">
+                <Button size="lg" className="rounded-full px-8 text-lg font-bold">
+                  + Add Your First Child
+                </Button>
+              </Link>
+              <Link href="/library/stories/new?mode=generate">
+                <Button size="lg" variant="outline" className="rounded-full px-8 text-lg font-bold">
+                  {"✨"} Quick Generate Fun Story
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       )}
