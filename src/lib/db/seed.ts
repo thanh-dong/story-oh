@@ -56,19 +56,30 @@ async function seedAccounts() {
 
 async function seedDemoStory() {
   console.log("\nSeeding demo intro story...");
-  const existing = await db.select({ id: stories.id }).from(stories).where(eq(stories.is_demo, true)).limit(1);
+  const existing = await db
+    .select({ id: stories.id })
+    .from(stories)
+    .where(eq(stories.is_demo, true))
+    .limit(1);
+
+  const fields = {
+    title: DEMO_STORY_TITLE,
+    summary: DEMO_STORY_SUMMARY,
+    age_range: DEMO_STORY_AGE_RANGE,
+    story_tree: DEMO_STORY_TREE,
+  };
+
   if (existing.length > 0) {
-    console.log(`  ✓ Demo story already exists (${existing[0].id})`);
+    await db.update(stories).set(fields).where(eq(stories.id, existing[0].id));
+    console.log(`  ✓ Updated demo story (${existing[0].id})`);
     return;
   }
+
   const [inserted] = await db
     .insert(stories)
     .values({
-      title: DEMO_STORY_TITLE,
-      summary: DEMO_STORY_SUMMARY,
-      age_range: DEMO_STORY_AGE_RANGE,
+      ...fields,
       is_demo: true,
-      story_tree: DEMO_STORY_TREE,
       cover_image: null,
       created_by: null,
     })
