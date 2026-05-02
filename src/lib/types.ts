@@ -21,6 +21,7 @@ export interface Story {
   price: number;
   age_range: string;
   require_login: boolean;
+  is_demo: boolean;
   story_tree: StoryTree;
   created_by: string | null;
   created_at: string;

@@ -1,8 +1,16 @@
 import { db } from "./index";
 import { sql } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { auth } from "../auth";
+import { stories } from "./schema";
+import {
+  DEMO_STORY_TITLE,
+  DEMO_STORY_SUMMARY,
+  DEMO_STORY_AGE_RANGE,
+  DEMO_STORY_TREE,
+} from "./demo-story";
 
-async function seed() {
+async function seedAccounts() {
   console.log("Seeding dev accounts...\n");
 
   const accounts = [
@@ -44,7 +52,33 @@ async function seed() {
       console.log(`  ✗ Failed to create ${account.email}:`, e.message ?? e);
     }
   }
+}
 
+async function seedDemoStory() {
+  console.log("\nSeeding demo intro story...");
+  const existing = await db.select({ id: stories.id }).from(stories).where(eq(stories.is_demo, true)).limit(1);
+  if (existing.length > 0) {
+    console.log(`  ✓ Demo story already exists (${existing[0].id})`);
+    return;
+  }
+  const [inserted] = await db
+    .insert(stories)
+    .values({
+      title: DEMO_STORY_TITLE,
+      summary: DEMO_STORY_SUMMARY,
+      age_range: DEMO_STORY_AGE_RANGE,
+      is_demo: true,
+      story_tree: DEMO_STORY_TREE,
+      cover_image: null,
+      created_by: null,
+    })
+    .returning({ id: stories.id });
+  console.log(`  ✓ Created demo story (${inserted.id})`);
+}
+
+async function seed() {
+  await seedAccounts();
+  await seedDemoStory();
   console.log("\nDone!");
   process.exit(0);
 }

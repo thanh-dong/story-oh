@@ -11,6 +11,7 @@ import { BookCover, Pill, ShelfLabel } from "@/components/editorial";
 import { ShareStoryDialog } from "@/components/share-story-dialog";
 import { DeleteStoryButton } from "./delete-story-button";
 import type { Child, StoryTree } from "@/lib/types";
+import { estimateReadingMinutes } from "@/lib/tree-utils";
 
 const fetcher = (url: string) => fetch(url).then((r) => {
   if (!r.ok) throw new Error("Failed to fetch");
@@ -80,6 +81,7 @@ export function LibraryClient() {
               {myStories.map((story) => {
                 const tree = story.storyTree as StoryTree;
                 const nodeCount = Object.keys(tree).length;
+                const readingMinutes = estimateReadingMinutes(tree);
                 const palette = getPalette(story.title);
 
                 return (
@@ -103,7 +105,13 @@ export function LibraryClient() {
                         <h3 className="display text-[20px] font-extrabold" style={{ letterSpacing: "-0.02em" }}>{story.title}</h3>
                       </Link>
                       <p className="mt-1 text-sm leading-normal text-muted-foreground line-clamp-1">{story.summary}</p>
-                      <div className="mt-2 text-[11px] font-semibold uppercase tracking-[0.04em] text-muted-foreground">{nodeCount} pages</div>
+                      <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] font-semibold uppercase tracking-[0.04em] text-muted-foreground">
+                        <span>Ages {story.ageRange}</span>
+                        <span aria-hidden="true">&middot;</span>
+                        <span>{nodeCount} pages</span>
+                        <span aria-hidden="true">&middot;</span>
+                        <span>~{readingMinutes} min read</span>
+                      </div>
                       <div className="mt-3 flex items-center gap-2">
                         <Link href={`/library/stories/${story.id}`} className="flex-1">
                           <Button variant="outline" size="sm" className="w-full rounded-lg text-xs font-semibold">

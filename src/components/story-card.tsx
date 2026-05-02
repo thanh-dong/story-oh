@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { StoryCover } from "@/components/story-cover";
 import { ShareStoryDialog } from "@/components/share-story-dialog";
 import type { Story, Child } from "@/lib/types";
+import { estimateReadingMinutes } from "@/lib/tree-utils";
 
 interface StoryCardProps {
   story: Story;
@@ -17,6 +18,7 @@ export function StoryCard({ story, childrenList, assignedChildIds }: StoryCardPr
   const endingCount = Object.values(story.story_tree).filter(
     (n) => n.choices.length === 0
   ).length;
+  const readingMinutes = estimateReadingMinutes(story.story_tree);
 
   return (
     <article className="group relative h-full overflow-hidden rounded-2xl bg-card shadow-card transition-all duration-200 hover:-translate-y-1 hover:shadow-elevated">
@@ -30,6 +32,11 @@ export function StoryCard({ story, childrenList, assignedChildIds }: StoryCardPr
           <Badge className="absolute right-3 top-3 bg-white/25 text-white backdrop-blur-sm border-0 text-xs font-bold">
             {story.age_range}
           </Badge>
+          {story.is_demo && (
+            <Badge className="absolute left-3 top-3 bg-kid-yellow text-ink border-0 text-[10px] font-bold uppercase tracking-wider">
+              Start here
+            </Badge>
+          )}
         </StoryCover>
 
         {/* Content */}
@@ -42,6 +49,8 @@ export function StoryCard({ story, childrenList, assignedChildIds }: StoryCardPr
           </p>
           <div className="flex items-center gap-3 pt-1 text-xs font-medium text-muted-foreground/70">
             <span>{nodeCount} pages</span>
+            <span aria-hidden="true">&middot;</span>
+            <span>~{readingMinutes} min read</span>
             <span aria-hidden="true">&middot;</span>
             <span>{endingCount} {endingCount === 1 ? "ending" : "endings"}</span>
           </div>

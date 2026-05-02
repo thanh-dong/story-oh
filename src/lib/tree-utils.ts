@@ -108,3 +108,17 @@ export function autoLayout<T extends Record<string, unknown> = Record<string, un
 export function generateNodeId(): string {
   return `node_${Date.now().toString(36)}`;
 }
+
+const KID_WORDS_PER_MINUTE = 130;
+
+export function estimateReadingMinutes(tree: StoryTree): number {
+  let totalWords = 0;
+  for (const node of Object.values(tree)) {
+    if (node.text) totalWords += node.text.trim().split(/\s+/).filter(Boolean).length;
+    for (const choice of node.choices) {
+      if (choice.label) totalWords += choice.label.trim().split(/\s+/).filter(Boolean).length;
+    }
+  }
+  if (totalWords === 0) return 1;
+  return Math.max(1, Math.ceil(totalWords / KID_WORDS_PER_MINUTE));
+}

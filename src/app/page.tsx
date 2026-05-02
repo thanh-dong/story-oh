@@ -2,8 +2,19 @@ import React from "react";
 import Link from "next/link";
 import { BookCover, Ornament, Stamp, CornerFold } from "@/components/editorial";
 import { HomeFeatured } from "./home-featured";
+import { getSession } from "@/lib/auth";
 
-export default function Home() {
+export default async function Home() {
+  let isAuthenticated = false;
+  try {
+    const session = await getSession();
+    isAuthenticated = Boolean(session?.user);
+  } catch {
+    isAuthenticated = false;
+  }
+  const ctaHref = isAuthenticated ? "/dashboard" : "/signup";
+  const ctaLabel = isAuthenticated ? "Open dashboard" : "Get started — free";
+  const ctaSubLabel = isAuthenticated ? "Continue your journey" : "No credit card required";
   return (
     <div className="bg-background text-foreground">
       {/* ─── HERO ─── */}
@@ -193,12 +204,12 @@ export default function Home() {
                 </p>
                 <div className="mt-7 flex items-center gap-3">
                   <Link
-                    href="/signup"
+                    href={ctaHref}
                     className="inline-flex rounded-full bg-white px-6 py-4 text-base font-bold" style={{ color: "oklch(0.22 0.03 55)" }}
                   >
-                    Get started &mdash; free
+                    {ctaLabel}
                   </Link>
-                  <span className="text-[13px] text-white/50">No credit card required</span>
+                  <span className="text-[13px] text-white/50">{ctaSubLabel}</span>
                 </div>
               </div>
 

@@ -74,6 +74,7 @@ export const stories = pgTable("stories", {
   price: real("price").notNull().default(0),
   age_range: text("age_range").notNull().default("4-8"),
   require_login: boolean("require_login").notNull().default(false),
+  is_demo: boolean("is_demo").notNull().default(false),
   story_tree: jsonb("story_tree").$type<StoryTree>().notNull(),
   created_by: text("created_by"),
   created_at: timestamp("created_at", { withTimezone: true, mode: "string" }).notNull().defaultNow(),

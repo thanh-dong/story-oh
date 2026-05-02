@@ -5,6 +5,7 @@ import Image from "next/image";
 import useSWR from "swr";
 import { BookCover } from "@/components/editorial";
 import type { StoryTree } from "@/lib/types";
+import { estimateReadingMinutes } from "@/lib/tree-utils";
 
 const fetcher = (url: string) => fetch(url).then((r) => {
   if (!r.ok) throw new Error("Failed to fetch");
@@ -62,6 +63,7 @@ export function HomeFeatured() {
         const tree = story.story_tree;
         const nodeCount = Object.keys(tree).length;
         const endingCount = Object.values(tree).filter((n) => n.choices.length === 0).length;
+        const readingMinutes = estimateReadingMinutes(tree);
 
         return (
           <Link
@@ -89,6 +91,8 @@ export function HomeFeatured() {
               <div className="mt-3.5 flex items-center justify-between">
                 <div className="flex gap-3.5 text-xs font-medium text-muted-foreground">
                   <span>{nodeCount} pages</span>
+                  <span className="opacity-40">&middot;</span>
+                  <span>~{readingMinutes} min</span>
                   <span className="opacity-40">&middot;</span>
                   <span>{endingCount} {endingCount === 1 ? "ending" : "endings"}</span>
                 </div>

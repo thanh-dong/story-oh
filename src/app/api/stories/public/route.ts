@@ -18,7 +18,7 @@ export async function GET(request: Request) {
           eq(storiesTable.require_login, false)
         )
       )
-      .orderBy(desc(storiesTable.created_at));
+      .orderBy(desc(storiesTable.is_demo), desc(storiesTable.created_at));
 
     if (limitNum && limitNum > 0 && limitNum <= 100) {
       query = query.limit(limitNum) as typeof query;

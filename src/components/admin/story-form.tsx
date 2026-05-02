@@ -183,7 +183,7 @@ export function StoryForm({ initialData, onSave, saving }: StoryFormProps) {
                 <ImagePlus className="size-4" />
               )}
               <span className="ml-1.5 hidden sm:inline">
-                {generatingCover ? "Generating..." : "Generate"}
+                {generatingCover ? "Generating cover..." : "Generate cover"}
               </span>
             </Button>
           </div>
