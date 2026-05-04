@@ -310,6 +310,9 @@ function TreeViewInner({
         }
         return {
           ...n,
+          draggable: editable,
+          selectable: true,
+          connectable: editable,
           data: {
             ...n.data,
             collapsed: isCollapsed,
@@ -318,7 +321,7 @@ function TreeViewInner({
           } as StoryNodeData,
         };
       });
-  }, [nodes, visibleIds, collapsed, toggleCollapse]);
+  }, [nodes, visibleIds, collapsed, toggleCollapse, editable]);
 
   const displayEdges = useMemo(
     () =>
@@ -463,7 +466,10 @@ function TreeViewInner({
           nodeTypes={nodeTypes}
           nodesDraggable={editable}
           nodesConnectable={editable}
+          edgesFocusable={editable}
+          edgesReconnectable={editable}
           elementsSelectable
+          deleteKeyCode={editable ? ["Backspace", "Delete"] : null}
           fitView
           minZoom={0.1}
         >
