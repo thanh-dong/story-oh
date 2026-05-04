@@ -200,7 +200,7 @@ function TreeViewInner({
       commitHistory();
       setEdges((eds) =>
         addEdge(
-          { ...connection, label: choiceLabel, type: "smoothstep" },
+          { ...connection, label: choiceLabel, type: "default" },
           eds
         )
       );

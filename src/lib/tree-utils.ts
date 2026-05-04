@@ -96,7 +96,7 @@ export function storyTreeToFlow(tree: StoryTree): { nodes: Node<StoryNodeData>[]
         sourceHandle: `choice-${choiceIndex}`,
         target: choice.next,
         label: choice.label,
-        type: "smoothstep",
+        type: "default",
         style: { stroke: targetColor, strokeWidth: 2 },
       });
     });
