@@ -310,7 +310,7 @@ function TreeViewInner({
         }
         return {
           ...n,
-          draggable: editable,
+          draggable: true,
           selectable: true,
           connectable: editable,
           data: {
@@ -458,13 +458,13 @@ function TreeViewInner({
         <ReactFlow
           nodes={displayNodes}
           edges={displayEdges}
-          onNodesChange={editable ? onNodesChange : undefined}
+          onNodesChange={onNodesChange}
           onEdgesChange={editable ? onEdgesChange : undefined}
           onConnect={editable ? onConnect : undefined}
           onNodeClick={onNodeClick}
           onPaneClick={onPaneClick}
           nodeTypes={nodeTypes}
-          nodesDraggable={editable}
+          nodesDraggable
           nodesConnectable={editable}
           edgesFocusable={editable}
           edgesReconnectable={editable}
