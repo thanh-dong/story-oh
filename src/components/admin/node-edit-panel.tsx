@@ -13,7 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Maximize2, Minimize2 } from "lucide-react";
+import { Maximize2, Minimize2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface NodeEditPanelProps {
@@ -21,6 +21,7 @@ interface NodeEditPanelProps {
   allNodeIds: string[];
   onChange: (updated: StoryNodeData) => void;
   onDelete: () => void;
+  onClose?: () => void;
   fullscreen?: boolean;
   onToggleFullscreen?: () => void;
 }
@@ -64,7 +65,6 @@ function NodeEditPanelBody({
 
   return (
     <>
-      {/* Node ID (read-only) */}
       <div className="mb-4">
         <Label className="text-sm text-muted-foreground mb-1">Node ID</Label>
         <p className={cn("font-mono", fullscreen ? "text-base" : "text-sm")}>
@@ -72,7 +72,6 @@ function NodeEditPanelBody({
         </p>
       </div>
 
-      {/* Story text */}
       <div className="mb-4">
         <Label className="text-sm mb-1">Story Text</Label>
         <Textarea
@@ -86,7 +85,6 @@ function NodeEditPanelBody({
 
       <Separator className="my-4" />
 
-      {/* Choices section */}
       <div className="mb-4">
         <h4 className="text-sm font-semibold mb-2">Choices</h4>
 
@@ -144,7 +142,6 @@ function NodeEditPanelBody({
 
       <Separator className="my-4" />
 
-      {/* Delete node */}
       <Button
         variant="destructive"
         className="w-full"
@@ -167,39 +164,98 @@ export function NodeEditPanel({
   allNodeIds: _allNodeIds,
   onChange,
   onDelete,
+  onClose,
   fullscreen = false,
   onToggleFullscreen,
 }: NodeEditPanelProps) {
-  if (fullscreen) {
-    return (
+  return (
+    <>
+      {/* Floating side drawer (always rendered when this component mounts) */}
+      <div
+        className={cn(
+          "absolute right-2 top-2 bottom-2 z-20 flex w-80 flex-col rounded-xl border bg-card shadow-elevated",
+          fullscreen && "pointer-events-none opacity-0"
+        )}
+      >
+        <div className="flex items-center justify-between gap-1 border-b px-4 py-3">
+          <h3 className="text-sm font-semibold">Edit Node</h3>
+          <div className="flex items-center gap-1">
+            {onToggleFullscreen && (
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={onToggleFullscreen}
+                title="Fullscreen"
+              >
+                <Maximize2 className="size-4" />
+                <span className="sr-only">Fullscreen</span>
+              </Button>
+            )}
+            {onClose && (
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={onClose}
+                title="Close"
+              >
+                <X className="size-4" />
+                <span className="sr-only">Close</span>
+              </Button>
+            )}
+          </div>
+        </div>
+        <div className="flex-1 overflow-y-auto p-4">
+          <NodeEditPanelBody
+            node={node}
+            onChange={onChange}
+            onDelete={onDelete}
+            fullscreen={false}
+          />
+        </div>
+      </div>
+
+      {/* Fullscreen dialog — always mounted, controlled by `open` */}
       <Dialog
-        open
+        open={fullscreen}
         onOpenChange={(next) => {
           if (!next) onToggleFullscreen?.();
         }}
       >
-        <DialogContent
-          className="!max-w-4xl"
-          showCloseButton={false}
-        >
-          <DialogHeader className="flex flex-row items-center justify-between gap-2">
+        <DialogContent className="!max-w-4xl" showCloseButton={false}>
+          <DialogHeader className="flex flex-row items-start justify-between gap-2">
             <div className="flex flex-col gap-1">
               <DialogTitle>Edit Node</DialogTitle>
               <DialogDescription>
                 Editing in fullscreen — press Esc or the minimize button to return.
               </DialogDescription>
             </div>
-            {onToggleFullscreen && (
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                onClick={onToggleFullscreen}
-                title="Exit fullscreen"
-              >
-                <Minimize2 className="size-4" />
-                <span className="sr-only">Exit fullscreen</span>
-              </Button>
-            )}
+            <div className="flex items-center gap-1">
+              {onToggleFullscreen && (
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={onToggleFullscreen}
+                  title="Exit fullscreen"
+                >
+                  <Minimize2 className="size-4" />
+                  <span className="sr-only">Exit fullscreen</span>
+                </Button>
+              )}
+              {onClose && (
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={() => {
+                    onToggleFullscreen?.();
+                    onClose();
+                  }}
+                  title="Close"
+                >
+                  <X className="size-4" />
+                  <span className="sr-only">Close</span>
+                </Button>
+              )}
+            </div>
           </DialogHeader>
           <div className="max-h-[80vh] overflow-y-auto">
             <NodeEditPanelBody
@@ -211,31 +267,6 @@ export function NodeEditPanel({
           </div>
         </DialogContent>
       </Dialog>
-    );
-  }
-
-  return (
-    <div className="w-80 border-l bg-card p-4 overflow-y-auto">
-      <div className="mb-4 flex items-center justify-between">
-        <h3 className="text-sm font-semibold">Edit Node</h3>
-        {onToggleFullscreen && (
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={onToggleFullscreen}
-            title="Fullscreen"
-          >
-            <Maximize2 className="size-4" />
-            <span className="sr-only">Fullscreen</span>
-          </Button>
-        )}
-      </div>
-      <NodeEditPanelBody
-        node={node}
-        onChange={onChange}
-        onDelete={onDelete}
-        fullscreen={false}
-      />
-    </div>
+    </>
   );
 }

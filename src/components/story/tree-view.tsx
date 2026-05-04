@@ -50,7 +50,7 @@ function TreeViewInner({
   value,
   onChange,
   mode = "edit",
-  height = "600px",
+  height = "720px",
 }: TreeViewProps) {
   const editable = mode === "edit";
   const { fitView, screenToFlowPosition } = useReactFlow();
@@ -205,6 +205,11 @@ function TreeViewInner({
 
   const onNodeClick = useCallback((_: React.MouseEvent, node: Node) => {
     setSelectedNodeId(node.id);
+  }, []);
+
+  const onPaneClick = useCallback(() => {
+    setSelectedNodeId(null);
+    setPanelFullscreen(false);
   }, []);
 
   const handleAddNode = useCallback(() => {
@@ -394,34 +399,33 @@ function TreeViewInner({
         </div>
       )}
 
-      <div className="flex flex-row">
-        <div
-          className="flex-1 rounded-xl border"
-          style={{ height }}
+      <div className="relative w-full rounded-xl border" style={{ height }}>
+        <ReactFlow
+          nodes={displayNodes}
+          edges={displayEdges}
+          onNodesChange={editable ? onNodesChange : undefined}
+          onEdgesChange={editable ? onEdgesChange : undefined}
+          onConnect={editable ? onConnect : undefined}
+          onNodeClick={onNodeClick}
+          onPaneClick={onPaneClick}
+          nodeTypes={nodeTypes}
+          nodesDraggable={editable}
+          nodesConnectable={editable}
+          elementsSelectable
+          fitView
+          minZoom={0.1}
         >
-          <ReactFlow
-            nodes={displayNodes}
-            edges={displayEdges}
-            onNodesChange={editable ? onNodesChange : undefined}
-            onEdgesChange={editable ? onEdgesChange : undefined}
-            onConnect={editable ? onConnect : undefined}
-            onNodeClick={onNodeClick}
-            nodeTypes={nodeTypes}
-            nodesDraggable={editable}
-            nodesConnectable={editable}
-            elementsSelectable
-            fitView
-          >
-            <Background gap={24} />
-            <Controls showInteractive={false} />
-            <MiniMap
-              nodeColor={minimapNodeColor}
-              pannable
-              zoomable
-              className="!bg-card"
-            />
-          </ReactFlow>
-        </div>
+          <Background gap={24} />
+          <Controls showInteractive={false} position="bottom-left" />
+          <MiniMap
+            nodeColor={minimapNodeColor}
+            pannable
+            zoomable
+            position="bottom-right"
+            className="!bg-card"
+            style={{ width: 140, height: 90 }}
+          />
+        </ReactFlow>
 
         {editable && selectedNodeData && (
           <NodeEditPanel
@@ -429,6 +433,7 @@ function TreeViewInner({
             allNodeIds={allNodeIds}
             onChange={handleNodeEditChange}
             onDelete={handleNodeDelete}
+            onClose={() => setSelectedNodeId(null)}
             fullscreen={panelFullscreen}
             onToggleFullscreen={() => {
               setPanelFullscreen((v) => !v);

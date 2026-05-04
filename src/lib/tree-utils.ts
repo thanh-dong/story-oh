@@ -146,7 +146,7 @@ const NODE_H = 120;
 export function autoLayout<T extends Record<string, unknown> = Record<string, unknown>>(nodes: Node<T>[], edges: Edge[]): { nodes: Node<T>[]; edges: Edge[] } {
   const g = new Dagre.graphlib.Graph();
   g.setDefaultEdgeLabel(() => ({}));
-  g.setGraph({ rankdir: "LR", nodesep: 40, ranksep: 80 });
+  g.setGraph({ rankdir: "LR", nodesep: 60, ranksep: 140 });
 
   nodes.forEach((node) => {
     g.setNode(node.id, { width: NODE_W, height: NODE_H });
