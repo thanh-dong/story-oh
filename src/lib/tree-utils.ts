@@ -140,29 +140,107 @@ export function flowToStoryTree(nodes: Node<StoryNodeData>[], edges: Edge[]): St
   return tree;
 }
 
-const NODE_W = 240;
-const NODE_H = 200;
+const NODE_W = 260;
+
+// Estimate the rendered height of a story node from its data so dagre can
+// reserve accurate vertical space. Without this, tall nodes overflow into
+// siblings ("messy" layout) and short nodes get wasted padding.
+function estimateNodeHeight(data: StoryNodeData | undefined): number {
+  if (!data) return 160;
+  const padding = 40; // border + p-3 top/bottom
+  const badgeRow = data.isStart || data.isEnding ? 28 : 0;
+  // Average ~36 chars/line at 14px/sm leading-relaxed inside w-260 with p-3.
+  const charsPerLine = 36;
+  const lineHeight = 22;
+  const textLines = Math.max(
+    1,
+    Math.ceil((data.text?.length ?? 0) / charsPerLine)
+  );
+  const textBlock = textLines * lineHeight;
+  const choiceRowHeight = 26; // each choice pill
+  const choicesBlock =
+    data.choices.length > 0
+      ? data.choices.length * choiceRowHeight + 12 // mt-3 spacing
+      : 0;
+  return Math.max(120, padding + badgeRow + textBlock + choicesBlock);
+}
+
+// Identify the "primary" outgoing edge for each source — the first choice.
+// We weight that edge higher so dagre tries to keep the canonical path
+// straight, which makes the spine of the story easier to read.
+function buildEdgeWeights(
+  nodes: Node<StoryNodeData>[],
+  edges: Edge[]
+): Map<string, { weight: number; minlen: number }> {
+  const out = new Map<string, { weight: number; minlen: number }>();
+  const reachedTargets = new Set<string>();
+  // Sort edges by source then by sourceHandle index so choice-0 always wins.
+  const sorted = [...edges].sort((a, b) => {
+    if (a.source !== b.source) return a.source.localeCompare(b.source);
+    const ai = parseInt(a.sourceHandle?.replace("choice-", "") ?? "0");
+    const bi = parseInt(b.sourceHandle?.replace("choice-", "") ?? "0");
+    return ai - bi;
+  });
+
+  const firstChoicePerSource = new Map<string, string>(); // source -> edge.id
+  for (const e of sorted) {
+    if (!firstChoicePerSource.has(e.source)) {
+      firstChoicePerSource.set(e.source, e.id);
+    }
+  }
+
+  for (const e of edges) {
+    let weight = 1;
+    let minlen = 1;
+    // Convergence: target already reached → lower weight so it doesn't pull
+    // its siblings around.
+    if (reachedTargets.has(e.target)) {
+      weight = 0.5;
+    } else if (firstChoicePerSource.get(e.source) === e.id) {
+      // Primary spine — straighter, shorter.
+      weight = 2;
+    }
+    reachedTargets.add(e.target);
+    out.set(e.id, { weight, minlen });
+  }
+  return out;
+}
 
 export function autoLayout<T extends Record<string, unknown> = Record<string, unknown>>(nodes: Node<T>[], edges: Edge[]): { nodes: Node<T>[]; edges: Edge[] } {
   const g = new Dagre.graphlib.Graph();
   g.setDefaultEdgeLabel(() => ({}));
-  g.setGraph({ rankdir: "LR", nodesep: 100, ranksep: 220, acyclicer: "greedy", ranker: "tight-tree" });
-
-  nodes.forEach((node) => {
-    g.setNode(node.id, { width: NODE_W, height: NODE_H });
+  g.setGraph({
+    rankdir: "LR",
+    nodesep: 80,
+    edgesep: 24,
+    ranksep: 200,
+    marginx: 40,
+    marginy: 40,
+    acyclicer: "greedy",
+    ranker: "network-simplex",
   });
 
+  const heights = new Map<string, number>();
+  nodes.forEach((node) => {
+    const h = estimateNodeHeight(node.data as unknown as StoryNodeData | undefined);
+    heights.set(node.id, h);
+    g.setNode(node.id, { width: NODE_W, height: h });
+  });
+
+  const weights = buildEdgeWeights(nodes as unknown as Node<StoryNodeData>[], edges);
   edges.forEach((edge) => {
-    g.setEdge(edge.source, edge.target);
+    const w = weights.get(edge.id) ?? { weight: 1, minlen: 1 };
+    g.setEdge(edge.source, edge.target, { weight: w.weight, minlen: w.minlen });
   });
 
   Dagre.layout(g);
 
   const layoutedNodes = nodes.map((node) => {
     const pos = g.node(node.id);
+    const h = heights.get(node.id) ?? 200;
     return {
       ...node,
-      position: { x: pos.x - NODE_W / 2, y: pos.y - NODE_H / 2 },
+      position: { x: pos.x - NODE_W / 2, y: pos.y - h / 2 },
     };
   });
 

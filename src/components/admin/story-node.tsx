@@ -15,17 +15,19 @@ export function StoryNodeComponent({
   data,
   selected,
 }: NodeProps & { data: StoryNodeData & StoryNodeExtras }) {
-  const truncatedText =
-    data.text.length > 80 ? data.text.slice(0, 80) + "..." : data.text;
-
   const accent = data.branchColor;
   const hasChildren = data.choices.some((c) => c.next);
   const canCollapse = hasChildren && !!data.onToggleCollapse;
+  const showBadges =
+    data.isStart ||
+    data.isEnding ||
+    canCollapse ||
+    (data.collapsed && !!data.hiddenChildCount);
 
   return (
     <div
       className={cn(
-        "w-[240px] overflow-hidden rounded-xl border bg-card shadow-sm",
+        "w-[260px] overflow-hidden rounded-xl border bg-card shadow-sm",
         selected && "ring-2 ring-primary"
       )}
       style={accent ? { borderLeft: `4px solid ${accent}` } : undefined}
@@ -34,47 +36,48 @@ export function StoryNodeComponent({
       <Handle type="target" position={Position.Left} />
 
       <div className="p-3">
-        {/* Node ID and badges */}
-        <div className="mb-2 flex items-center gap-2">
-          {canCollapse && (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                data.onToggleCollapse?.();
-              }}
-              className="-ml-1 flex size-5 shrink-0 items-center justify-center rounded hover:bg-muted"
-              title={data.collapsed ? "Expand" : "Collapse"}
-            >
-              {data.collapsed ? (
-                <ChevronRight className="size-3.5" />
-              ) : (
-                <ChevronDown className="size-3.5" />
-              )}
-            </button>
-          )}
-          <span className="text-xs font-bold text-muted-foreground">
-            {data.nodeId}
-          </span>
-          {data.isStart && (
-            <Badge className="bg-green-600 text-white text-[10px] px-1.5 py-0">
-              START
-            </Badge>
-          )}
-          {data.isEnding && (
-            <Badge className="bg-amber-500 text-white text-[10px] px-1.5 py-0">
-              END
-            </Badge>
-          )}
-          {data.collapsed && data.hiddenChildCount ? (
-            <Badge className="bg-muted text-foreground text-[10px] px-1.5 py-0">
-              +{data.hiddenChildCount}
-            </Badge>
-          ) : null}
-        </div>
+        {/* Badges row (only when there's something to show) */}
+        {showBadges && (
+          <div className="mb-2 flex items-center gap-2">
+            {canCollapse && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  data.onToggleCollapse?.();
+                }}
+                className="-ml-1 flex size-5 shrink-0 items-center justify-center rounded hover:bg-muted"
+                title={data.collapsed ? "Expand" : "Collapse"}
+              >
+                {data.collapsed ? (
+                  <ChevronRight className="size-3.5" />
+                ) : (
+                  <ChevronDown className="size-3.5" />
+                )}
+              </button>
+            )}
+            {data.isStart && (
+              <Badge className="bg-green-600 text-white text-[10px] px-1.5 py-0">
+                START
+              </Badge>
+            )}
+            {data.isEnding && (
+              <Badge className="bg-amber-500 text-white text-[10px] px-1.5 py-0">
+                END
+              </Badge>
+            )}
+            {data.collapsed && data.hiddenChildCount ? (
+              <Badge className="bg-muted text-foreground text-[10px] px-1.5 py-0">
+                +{data.hiddenChildCount}
+              </Badge>
+            ) : null}
+          </div>
+        )}
 
-        {/* Story text preview */}
-        <p className="text-sm text-foreground">{truncatedText}</p>
+        {/* Story text — full content, wraps naturally */}
+        <p className="whitespace-pre-wrap break-words text-sm leading-relaxed text-foreground">
+          {data.text}
+        </p>
 
         {/* Choice buttons with handles */}
         {data.choices.length > 0 && (
