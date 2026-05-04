@@ -96,7 +96,7 @@ export function storyTreeToFlow(tree: StoryTree): { nodes: Node<StoryNodeData>[]
         sourceHandle: `choice-${choiceIndex}`,
         target: choice.next,
         label: choice.label,
-        type: "default",
+        type: "smoothstep",
         style: { stroke: targetColor, strokeWidth: 2 },
       });
     });
@@ -141,12 +141,12 @@ export function flowToStoryTree(nodes: Node<StoryNodeData>[], edges: Edge[]): St
 }
 
 const NODE_W = 240;
-const NODE_H = 120;
+const NODE_H = 200;
 
 export function autoLayout<T extends Record<string, unknown> = Record<string, unknown>>(nodes: Node<T>[], edges: Edge[]): { nodes: Node<T>[]; edges: Edge[] } {
   const g = new Dagre.graphlib.Graph();
   g.setDefaultEdgeLabel(() => ({}));
-  g.setGraph({ rankdir: "LR", nodesep: 60, ranksep: 140 });
+  g.setGraph({ rankdir: "LR", nodesep: 100, ranksep: 220, acyclicer: "greedy", ranker: "tight-tree" });
 
   nodes.forEach((node) => {
     g.setNode(node.id, { width: NODE_W, height: NODE_H });

@@ -38,11 +38,13 @@ export default async function StoryDetailPage({
 
   if (!story) notFound();
 
+  let isOwner = false;
   if (story.created_by) {
     const session = await getSession();
     if (!session || session.user.id !== story.created_by) {
       notFound();
     }
+    isOwner = true;
   }
 
   const tree = story.story_tree as StoryTree;
@@ -112,14 +114,24 @@ export default async function StoryDetailPage({
           {/* Story Map (collapsed by default) */}
           <StoryMapSection storyTree={tree} />
 
-          {/* CTA */}
-          <Link
-            href={`/story/${story.id}/read`}
-            className="mt-8 flex items-center justify-center gap-2 rounded-full bg-ink px-8 py-4 text-lg font-bold text-background shadow-elevated transition-all hover:-translate-y-0.5 hover:shadow-card"
-          >
-            <Ornament kind="star" size={16} color="var(--background)" />
-            Start Reading
-          </Link>
+          {/* CTAs */}
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <Link
+              href={`/story/${story.id}/read`}
+              className="flex flex-1 items-center justify-center gap-2 rounded-full bg-ink px-8 py-4 text-lg font-bold text-background shadow-elevated transition-all hover:-translate-y-0.5 hover:shadow-card"
+            >
+              <Ornament kind="star" size={16} color="var(--background)" />
+              Start Reading
+            </Link>
+            {isOwner && (
+              <Link
+                href={`/library/stories/${story.id}`}
+                className="flex items-center justify-center gap-2 rounded-full border-2 border-ink bg-background px-8 py-4 text-base font-bold text-ink transition-all hover:-translate-y-0.5 hover:bg-ink/5 sm:px-6"
+              >
+                Edit Story
+              </Link>
+            )}
+          </div>
         </div>
 
         {/* Decorative ornaments */}

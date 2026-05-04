@@ -29,6 +29,8 @@ import {
 import { StoryNodeComponent } from "@/components/admin/story-node";
 import { NodeEditPanel } from "@/components/admin/node-edit-panel";
 import { Button } from "@/components/ui/button";
+import { Maximize2, Minimize2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const nodeTypes = { storyNode: StoryNodeComponent };
 
@@ -65,7 +67,7 @@ function TreeViewInner({
 
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
-  const [panelFullscreen, setPanelFullscreen] = useState(false);
+  const [canvasFullscreen, setCanvasFullscreen] = useState(false);
 
   const isInternalUpdate = useRef(false);
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -197,7 +199,10 @@ function TreeViewInner({
 
       commitHistory();
       setEdges((eds) =>
-        addEdge({ ...connection, label: choiceLabel, type: "default" }, eds)
+        addEdge(
+          { ...connection, label: choiceLabel, type: "smoothstep" },
+          eds
+        )
       );
     },
     [editable, setEdges, nodes, commitHistory]
@@ -209,8 +214,26 @@ function TreeViewInner({
 
   const onPaneClick = useCallback(() => {
     setSelectedNodeId(null);
-    setPanelFullscreen(false);
   }, []);
+
+  const toggleCanvasFullscreen = useCallback(() => {
+    setCanvasFullscreen((v) => !v);
+    setTimeout(() => fitView({ padding: 0.2 }), 80);
+  }, [fitView]);
+
+  // Esc exits fullscreen
+  useEffect(() => {
+    if (!canvasFullscreen) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setCanvasFullscreen(false);
+        setTimeout(() => fitView({ padding: 0.2 }), 80);
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [canvasFullscreen, fitView]);
 
   const handleAddNode = useCallback(() => {
     if (!editable) return;
@@ -353,53 +376,82 @@ function TreeViewInner({
     return data?.branchColor ?? "#94a3b8";
   }, []);
 
-  return (
-    <div className="flex flex-col gap-2">
-      {editable && (
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={handleAddNode}>
-            Add Node
-          </Button>
-          <Button variant="outline" size="sm" onClick={handleAutoLayout}>
-            Auto Layout
-          </Button>
-          <Button variant="outline" size="sm" onClick={handleFitView}>
-            Fit View
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={undo}
-            disabled={history.length === 0}
-            title="Undo (Cmd/Ctrl+Z)"
-          >
-            Undo
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={redo}
-            disabled={future.length === 0}
-            title="Redo (Cmd/Ctrl+Shift+Z)"
-          >
-            Redo
-          </Button>
-          {collapsed.size > 0 && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setCollapsed(new Set());
-                setTimeout(() => fitView({ padding: 0.2 }), 60);
-              }}
-            >
-              Expand all ({collapsed.size})
-            </Button>
-          )}
-        </div>
+  const toolbar = editable ? (
+    <div className="flex flex-wrap items-center gap-2">
+      <Button variant="outline" size="sm" onClick={handleAddNode}>
+        Add Node
+      </Button>
+      <Button variant="outline" size="sm" onClick={handleAutoLayout}>
+        Auto Layout
+      </Button>
+      <Button variant="outline" size="sm" onClick={handleFitView}>
+        Fit View
+      </Button>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={undo}
+        disabled={history.length === 0}
+        title="Undo (Cmd/Ctrl+Z)"
+      >
+        Undo
+      </Button>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={redo}
+        disabled={future.length === 0}
+        title="Redo (Cmd/Ctrl+Shift+Z)"
+      >
+        Redo
+      </Button>
+      {collapsed.size > 0 && (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            setCollapsed(new Set());
+            setTimeout(() => fitView({ padding: 0.2 }), 60);
+          }}
+        >
+          Expand all ({collapsed.size})
+        </Button>
       )}
+    </div>
+  ) : (
+    <div className="flex flex-wrap items-center gap-2">
+      <Button variant="outline" size="sm" onClick={handleFitView}>
+        Fit View
+      </Button>
+      {collapsed.size > 0 && (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            setCollapsed(new Set());
+            setTimeout(() => fitView({ padding: 0.2 }), 60);
+          }}
+        >
+          Expand all ({collapsed.size})
+        </Button>
+      )}
+    </div>
+  );
 
-      <div className="relative w-full rounded-xl border" style={{ height }}>
+  return (
+    <div
+      className={cn(
+        "flex flex-col gap-2",
+        canvasFullscreen &&
+          "fixed inset-0 z-50 bg-background p-3 gap-3"
+      )}
+    >
+      {toolbar}
+
+      <div
+        className="relative w-full rounded-xl border"
+        style={{ height: canvasFullscreen ? "100%" : height, flex: canvasFullscreen ? 1 : undefined }}
+      >
         <ReactFlow
           nodes={displayNodes}
           edges={displayEdges}
@@ -427,6 +479,31 @@ function TreeViewInner({
           />
         </ReactFlow>
 
+        {/* Floating fullscreen toggle — always visible. Shifts left when panel is open. */}
+        <div
+          className={cn(
+            "absolute top-2 z-30",
+            editable && selectedNodeData ? "right-[336px]" : "right-2"
+          )}
+        >
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={toggleCanvasFullscreen}
+            title={canvasFullscreen ? "Exit fullscreen (Esc)" : "Fullscreen"}
+            className="bg-card/95 shadow-card backdrop-blur"
+          >
+            {canvasFullscreen ? (
+              <Minimize2 className="size-4" />
+            ) : (
+              <Maximize2 className="size-4" />
+            )}
+            <span className="ml-1.5">
+              {canvasFullscreen ? "Exit" : "Fullscreen"}
+            </span>
+          </Button>
+        </div>
+
         {editable && selectedNodeData && (
           <NodeEditPanel
             node={selectedNodeData}
@@ -434,11 +511,6 @@ function TreeViewInner({
             onChange={handleNodeEditChange}
             onDelete={handleNodeDelete}
             onClose={() => setSelectedNodeId(null)}
-            fullscreen={panelFullscreen}
-            onToggleFullscreen={() => {
-              setPanelFullscreen((v) => !v);
-              setTimeout(() => fitView({ padding: 0.2 }), 80);
-            }}
           />
         )}
       </div>
