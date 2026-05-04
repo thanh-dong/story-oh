@@ -2,7 +2,7 @@
 
 import "@xyflow/react/dist/style.css";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ReactFlow,
   ReactFlowProvider,
@@ -10,6 +10,9 @@ import {
   useEdgesState,
   addEdge,
   useReactFlow,
+  MiniMap,
+  Background,
+  Controls,
   type Connection,
   type Node,
   type Edge,
@@ -21,16 +24,19 @@ import {
   flowToStoryTree,
   autoLayout,
   generateNodeId,
+  computeVisibleNodeIds,
 } from "@/lib/tree-utils";
-import { StoryNodeComponent } from "./story-node";
-import { NodeEditPanel } from "./node-edit-panel";
+import { StoryNodeComponent } from "@/components/admin/story-node";
+import { NodeEditPanel } from "@/components/admin/node-edit-panel";
 import { Button } from "@/components/ui/button";
 
 const nodeTypes = { storyNode: StoryNodeComponent };
 
-interface TreeEditorProps {
+export interface TreeViewProps {
   value: StoryTree;
-  onChange: (tree: StoryTree) => void;
+  onChange?: (tree: StoryTree) => void;
+  mode?: "edit" | "preview";
+  height?: string;
 }
 
 type EditorSnapshot = {
@@ -40,7 +46,13 @@ type EditorSnapshot = {
 
 const MAX_HISTORY = 50;
 
-function TreeEditorInner({ value, onChange }: TreeEditorProps) {
+function TreeViewInner({
+  value,
+  onChange,
+  mode = "edit",
+  height = "600px",
+}: TreeViewProps) {
+  const editable = mode === "edit";
   const { fitView, screenToFlowPosition } = useReactFlow();
 
   const initialFlow = useRef(storyTreeToFlow(value));
@@ -52,17 +64,15 @@ function TreeEditorInner({ value, onChange }: TreeEditorProps) {
   );
 
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+  const [panelFullscreen, setPanelFullscreen] = useState(false);
 
-  // Track whether changes are from internal updates to avoid infinite loops
   const isInternalUpdate = useRef(false);
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Undo / redo history (in-session only, ephemeral on reload).
   const [history, setHistory] = useState<EditorSnapshot[]>([]);
   const [future, setFuture] = useState<EditorSnapshot[]>([]);
 
-  // Keep latest nodes/edges in refs so undo/redo callbacks can read fresh state
-  // without re-binding on every render.
   const nodesRef = useRef(nodes);
   const edgesRef = useRef(edges);
   useEffect(() => {
@@ -71,6 +81,7 @@ function TreeEditorInner({ value, onChange }: TreeEditorProps) {
   }, [nodes, edges]);
 
   const commitHistory = useCallback(() => {
+    if (!editable) return;
     setHistory((h) => {
       const next = [
         ...h,
@@ -84,9 +95,10 @@ function TreeEditorInner({ value, onChange }: TreeEditorProps) {
         : next;
     });
     setFuture([]);
-  }, []);
+  }, [editable]);
 
   const undo = useCallback(() => {
+    if (!editable) return;
     setHistory((h) => {
       if (h.length === 0) return h;
       const prev = h[h.length - 1];
@@ -102,9 +114,10 @@ function TreeEditorInner({ value, onChange }: TreeEditorProps) {
       setSelectedNodeId(null);
       return h.slice(0, -1);
     });
-  }, [setNodes, setEdges]);
+  }, [editable, setNodes, setEdges]);
 
   const redo = useCallback(() => {
+    if (!editable) return;
     setFuture((f) => {
       if (f.length === 0) return f;
       const next = f[f.length - 1];
@@ -125,11 +138,10 @@ function TreeEditorInner({ value, onChange }: TreeEditorProps) {
       setSelectedNodeId(null);
       return f.slice(0, -1);
     });
-  }, [setNodes, setEdges]);
+  }, [editable, setNodes, setEdges]);
 
-  // Keyboard shortcuts: Cmd/Ctrl+Z = undo, Cmd/Ctrl+Shift+Z or Cmd/Ctrl+Y = redo.
-  // Skip when focus is in a text input so native text-undo still works.
   useEffect(() => {
+    if (!editable) return;
     const handler = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
       const tag = target?.tagName;
@@ -147,10 +159,11 @@ function TreeEditorInner({ value, onChange }: TreeEditorProps) {
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [undo, redo]);
+  }, [editable, undo, redo]);
 
-  // Sync back to parent with debounce
+  // Sync back to parent (edit mode only)
   useEffect(() => {
+    if (!editable || !onChange) return;
     if (isInternalUpdate.current) {
       isInternalUpdate.current = false;
       return;
@@ -161,10 +174,7 @@ function TreeEditorInner({ value, onChange }: TreeEditorProps) {
     }
 
     debounceTimer.current = setTimeout(() => {
-      const tree = flowToStoryTree(
-        nodes as Node<StoryNodeData>[],
-        edges
-      );
+      const tree = flowToStoryTree(nodes as Node<StoryNodeData>[], edges);
       onChange(tree);
     }, 300);
 
@@ -173,11 +183,11 @@ function TreeEditorInner({ value, onChange }: TreeEditorProps) {
         clearTimeout(debounceTimer.current);
       }
     };
-  }, [nodes, edges, onChange]);
+  }, [editable, nodes, edges, onChange]);
 
   const onConnect = useCallback(
     (connection: Connection) => {
-      // Look up the actual choice label from the source node's data
+      if (!editable) return;
       const sourceNode = nodes.find((n) => n.id === connection.source);
       const sourceData = sourceNode?.data as StoryNodeData | undefined;
       const choiceIndex = parseInt(
@@ -187,20 +197,18 @@ function TreeEditorInner({ value, onChange }: TreeEditorProps) {
 
       commitHistory();
       setEdges((eds) =>
-        addEdge({ ...connection, label: choiceLabel, type: "smoothstep" }, eds)
+        addEdge({ ...connection, label: choiceLabel, type: "default" }, eds)
       );
     },
-    [setEdges, nodes, commitHistory]
+    [editable, setEdges, nodes, commitHistory]
   );
 
-  const onNodeClick = useCallback(
-    (_: React.MouseEvent, node: Node) => {
-      setSelectedNodeId(node.id);
-    },
-    []
-  );
+  const onNodeClick = useCallback((_: React.MouseEvent, node: Node) => {
+    setSelectedNodeId(node.id);
+  }, []);
 
   const handleAddNode = useCallback(() => {
+    if (!editable) return;
     const newId = generateNodeId();
     const position = screenToFlowPosition({
       x: window.innerWidth / 2,
@@ -222,7 +230,7 @@ function TreeEditorInner({ value, onChange }: TreeEditorProps) {
 
     commitHistory();
     setNodes((nds) => [...nds, newNode]);
-  }, [screenToFlowPosition, setNodes, commitHistory]);
+  }, [editable, screenToFlowPosition, setNodes, commitHistory]);
 
   const handleAutoLayout = useCallback(() => {
     const laid = autoLayout(nodes, edges);
@@ -237,23 +245,73 @@ function TreeEditorInner({ value, onChange }: TreeEditorProps) {
     fitView({ padding: 0.2 });
   }, [fitView]);
 
-  // Find the selected node data
+  const toggleCollapse = useCallback(
+    (nodeId: string) => {
+      setCollapsed((prev) => {
+        const next = new Set(prev);
+        if (next.has(nodeId)) next.delete(nodeId);
+        else next.add(nodeId);
+        return next;
+      });
+      setTimeout(() => fitView({ padding: 0.2 }), 60);
+    },
+    [fitView]
+  );
+
+  // Compute visibility from current nodes/edges + collapsed set.
+  const tree: StoryTree = useMemo(
+    () => flowToStoryTree(nodes as Node<StoryNodeData>[], edges),
+    [nodes, edges]
+  );
+  const visibleIds = useMemo(
+    () => computeVisibleNodeIds(tree, collapsed),
+    [tree, collapsed]
+  );
+
+  // Augment nodes with collapse metadata, then filter by visibility.
+  const displayNodes = useMemo(() => {
+    return (nodes as Node<StoryNodeData>[])
+      .filter((n) => visibleIds.has(n.id))
+      .map((n) => {
+        const isCollapsed = collapsed.has(n.id);
+        let hidden = 0;
+        if (isCollapsed) {
+          for (const choice of n.data.choices) {
+            if (choice.next && !visibleIds.has(choice.next)) hidden++;
+          }
+        }
+        return {
+          ...n,
+          data: {
+            ...n.data,
+            collapsed: isCollapsed,
+            hiddenChildCount: hidden,
+            onToggleCollapse: () => toggleCollapse(n.id),
+          } as StoryNodeData,
+        };
+      });
+  }, [nodes, visibleIds, collapsed, toggleCollapse]);
+
+  const displayEdges = useMemo(
+    () =>
+      edges.filter(
+        (e) => visibleIds.has(e.source) && visibleIds.has(e.target)
+      ),
+    [edges, visibleIds]
+  );
+
   const selectedNode = nodes.find((n) => n.id === selectedNodeId);
   const selectedNodeData = selectedNode?.data as StoryNodeData | undefined;
   const allNodeIds = nodes.map((n) => n.id);
 
   const handleNodeEditChange = useCallback(
     (updated: StoryNodeData) => {
+      if (!editable) return;
       commitHistory();
       setNodes((nds) =>
-        nds.map((n) =>
-          n.id === selectedNodeId
-            ? { ...n, data: updated }
-            : n
-        )
+        nds.map((n) => (n.id === selectedNodeId ? { ...n, data: updated } : n))
       );
 
-      // Also update edge labels if choice labels changed
       setEdges((eds) =>
         eds.map((e) => {
           if (e.source === selectedNodeId && e.sourceHandle) {
@@ -269,11 +327,11 @@ function TreeEditorInner({ value, onChange }: TreeEditorProps) {
         })
       );
     },
-    [selectedNodeId, setNodes, setEdges, commitHistory]
+    [editable, selectedNodeId, setNodes, setEdges, commitHistory]
   );
 
   const handleNodeDelete = useCallback(() => {
-    if (!selectedNodeId || selectedNodeId === "start") return;
+    if (!editable || !selectedNodeId || selectedNodeId === "start") return;
 
     commitHistory();
     setNodes((nds) => nds.filter((n) => n.id !== selectedNodeId));
@@ -283,62 +341,99 @@ function TreeEditorInner({ value, onChange }: TreeEditorProps) {
       )
     );
     setSelectedNodeId(null);
-  }, [selectedNodeId, setNodes, setEdges, commitHistory]);
+  }, [editable, selectedNodeId, setNodes, setEdges, commitHistory]);
+
+  const minimapNodeColor = useCallback((node: Node) => {
+    const data = node.data as StoryNodeData | undefined;
+    return data?.branchColor ?? "#94a3b8";
+  }, []);
 
   return (
     <div className="flex flex-col gap-2">
-      {/* Toolbar */}
-      <div className="flex items-center gap-2">
-        <Button variant="outline" size="sm" onClick={handleAddNode}>
-          Add Node
-        </Button>
-        <Button variant="outline" size="sm" onClick={handleAutoLayout}>
-          Auto Layout
-        </Button>
-        <Button variant="outline" size="sm" onClick={handleFitView}>
-          Fit View
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={undo}
-          disabled={history.length === 0}
-          title="Undo (Cmd/Ctrl+Z)"
-        >
-          Undo
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={redo}
-          disabled={future.length === 0}
-          title="Redo (Cmd/Ctrl+Shift+Z)"
-        >
-          Redo
-        </Button>
-      </div>
+      {editable && (
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={handleAddNode}>
+            Add Node
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleAutoLayout}>
+            Auto Layout
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleFitView}>
+            Fit View
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={undo}
+            disabled={history.length === 0}
+            title="Undo (Cmd/Ctrl+Z)"
+          >
+            Undo
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={redo}
+            disabled={future.length === 0}
+            title="Redo (Cmd/Ctrl+Shift+Z)"
+          >
+            Redo
+          </Button>
+          {collapsed.size > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setCollapsed(new Set());
+                setTimeout(() => fitView({ padding: 0.2 }), 60);
+              }}
+            >
+              Expand all ({collapsed.size})
+            </Button>
+          )}
+        </div>
+      )}
 
-      {/* Canvas + Edit Panel */}
       <div className="flex flex-row">
-        <div className="h-[600px] flex-1 rounded-xl border">
+        <div
+          className="flex-1 rounded-xl border"
+          style={{ height }}
+        >
           <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
+            nodes={displayNodes}
+            edges={displayEdges}
+            onNodesChange={editable ? onNodesChange : undefined}
+            onEdgesChange={editable ? onEdgesChange : undefined}
+            onConnect={editable ? onConnect : undefined}
             onNodeClick={onNodeClick}
             nodeTypes={nodeTypes}
+            nodesDraggable={editable}
+            nodesConnectable={editable}
+            elementsSelectable
             fitView
-          />
+          >
+            <Background gap={24} />
+            <Controls showInteractive={false} />
+            <MiniMap
+              nodeColor={minimapNodeColor}
+              pannable
+              zoomable
+              className="!bg-card"
+            />
+          </ReactFlow>
         </div>
 
-        {selectedNodeData && (
+        {editable && selectedNodeData && (
           <NodeEditPanel
             node={selectedNodeData}
             allNodeIds={allNodeIds}
             onChange={handleNodeEditChange}
             onDelete={handleNodeDelete}
+            fullscreen={panelFullscreen}
+            onToggleFullscreen={() => {
+              setPanelFullscreen((v) => !v);
+              setTimeout(() => fitView({ padding: 0.2 }), 80);
+            }}
           />
         )}
       </div>
@@ -346,10 +441,10 @@ function TreeEditorInner({ value, onChange }: TreeEditorProps) {
   );
 }
 
-export function TreeEditor({ value, onChange }: TreeEditorProps) {
+export function TreeView(props: TreeViewProps) {
   return (
     <ReactFlowProvider>
-      <TreeEditorInner value={value} onChange={onChange} />
+      <TreeViewInner {...props} />
     </ReactFlowProvider>
   );
 }

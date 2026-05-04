@@ -88,7 +88,7 @@ export function LibraryClient() {
                   <article key={story.id} className="group relative flex flex-col overflow-hidden rounded-[18px] border border-border bg-card shadow-card">
                     {userChildren.length > 0 && (
                       <div className="absolute right-3 top-3 z-10">
-                        <ShareStoryDialog storyId={story.id} childrenList={userChildren} assignedChildIds={assignmentMap[story.id] ?? []} />
+                        <ShareStoryDialog storyId={story.id} childrenList={userChildren} assignedChildIds={assignmentMap[story.id] ?? []} storyTree={story.storyTree as StoryTree} />
                       </div>
                     )}
                     <Link href={`/story/${story.id}`} className="block">

@@ -221,7 +221,7 @@ function StoryCardLg({ story, childrenList, assignedChildIds }: {
     <div className="group relative flex flex-col overflow-hidden rounded-[18px] border border-border bg-card shadow-card">
       {childrenList.length > 0 && (
         <div className="absolute left-3 top-3 z-10">
-          <ShareStoryDialog storyId={story.id} childrenList={childrenList} assignedChildIds={assignedChildIds} />
+          <ShareStoryDialog storyId={story.id} childrenList={childrenList} assignedChildIds={assignedChildIds} storyTree={story.story_tree} />
         </div>
       )}
       <Link href={`/story/${story.id}`} className="block">

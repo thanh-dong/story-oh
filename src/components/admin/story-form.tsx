@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Loader2, ImagePlus } from "lucide-react";
-import { TreeEditor } from "./tree-editor";
+import { TreeView } from "@/components/story/tree-view";
 import type { StoryTree } from "@/lib/types";
 
 interface StoryFormProps {
@@ -215,7 +215,7 @@ export function StoryForm({ initialData, onSave, saving }: StoryFormProps) {
         <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
           Story Tree
         </p>
-        <TreeEditor value={storyTree} onChange={setStoryTree} />
+        <TreeView value={storyTree} onChange={setStoryTree} mode="edit" />
       </div>
 
       {/* Bottom save button */}

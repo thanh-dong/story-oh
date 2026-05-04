@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Users } from "lucide-react";
+import { Users, Map as MapIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -13,19 +13,23 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
-import type { Child } from "@/lib/types";
+import { TreeView } from "@/components/story/tree-view";
+import type { Child, StoryTree } from "@/lib/types";
 
 interface ShareStoryDialogProps {
   storyId: string;
   childrenList: Child[];
   assignedChildIds: string[];
+  storyTree?: StoryTree;
 }
 
 export function ShareStoryDialog({
   storyId,
   childrenList,
   assignedChildIds,
+  storyTree,
 }: ShareStoryDialogProps) {
+  const [showMap, setShowMap] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(
     new Set(assignedChildIds)
   );
@@ -103,13 +107,36 @@ export function ShareStoryDialog({
         <span className="sr-only">Share with children</span>
       </DialogTrigger>
 
-      <DialogContent>
+      <DialogContent
+        className={showMap ? "!max-w-3xl" : undefined}
+      >
         <DialogHeader>
           <DialogTitle>Share with Children</DialogTitle>
           <DialogDescription>
             Choose which children can access this story.
           </DialogDescription>
         </DialogHeader>
+
+        {storyTree && (
+          <div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setShowMap((v) => !v)}
+            >
+              <MapIcon className="size-4" />
+              <span className="ml-1.5">
+                {showMap ? "Hide story map" : "Preview story map"}
+              </span>
+            </Button>
+            {showMap && (
+              <div className="mt-3">
+                <TreeView value={storyTree} mode="preview" height="380px" />
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
           {childrenList.map((child) => {

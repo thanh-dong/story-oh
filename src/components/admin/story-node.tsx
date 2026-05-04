@@ -2,30 +2,57 @@
 
 import { Handle, Position } from "@xyflow/react";
 import type { NodeProps } from "@xyflow/react";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import type { StoryNodeData } from "@/lib/tree-utils";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
+interface StoryNodeExtras {
+  onToggleCollapse?: () => void;
+}
+
 export function StoryNodeComponent({
   data,
   selected,
-}: NodeProps & { data: StoryNodeData }) {
+}: NodeProps & { data: StoryNodeData & StoryNodeExtras }) {
   const truncatedText =
     data.text.length > 80 ? data.text.slice(0, 80) + "..." : data.text;
+
+  const accent = data.branchColor;
+  const hasChildren = data.choices.some((c) => c.next);
+  const canCollapse = hasChildren && !!data.onToggleCollapse;
 
   return (
     <div
       className={cn(
-        "w-[280px] rounded-xl border bg-card shadow-sm",
+        "w-[240px] overflow-hidden rounded-xl border bg-card shadow-sm",
         selected && "ring-2 ring-primary"
       )}
+      style={accent ? { borderLeft: `4px solid ${accent}` } : undefined}
     >
       {/* Target handle (incoming connections) */}
-      <Handle type="target" position={Position.Top} />
+      <Handle type="target" position={Position.Left} />
 
       <div className="p-3">
         {/* Node ID and badges */}
         <div className="mb-2 flex items-center gap-2">
+          {canCollapse && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                data.onToggleCollapse?.();
+              }}
+              className="-ml-1 flex size-5 shrink-0 items-center justify-center rounded hover:bg-muted"
+              title={data.collapsed ? "Expand" : "Collapse"}
+            >
+              {data.collapsed ? (
+                <ChevronRight className="size-3.5" />
+              ) : (
+                <ChevronDown className="size-3.5" />
+              )}
+            </button>
+          )}
           <span className="text-xs font-bold text-muted-foreground">
             {data.nodeId}
           </span>
@@ -39,6 +66,11 @@ export function StoryNodeComponent({
               END
             </Badge>
           )}
+          {data.collapsed && data.hiddenChildCount ? (
+            <Badge className="bg-muted text-foreground text-[10px] px-1.5 py-0">
+              +{data.hiddenChildCount}
+            </Badge>
+          ) : null}
         </div>
 
         {/* Story text preview */}
@@ -72,7 +104,7 @@ export function StoryNodeComponent({
       {data.choices.length === 0 && (
         <Handle
           type="source"
-          position={Position.Bottom}
+          position={Position.Right}
           id="choice-0"
           style={{ opacity: 0.3 }}
         />

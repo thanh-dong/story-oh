@@ -63,6 +63,7 @@ export function StoryCard({ story, childrenList, assignedChildIds }: StoryCardPr
             storyId={story.id}
             childrenList={childrenList}
             assignedChildIds={assignedChildIds ?? []}
+            storyTree={story.story_tree}
           />
         </div>
       )}

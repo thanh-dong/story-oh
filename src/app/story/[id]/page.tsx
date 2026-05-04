@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { stories as storiesTable } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { BookCover, Ornament, Pill, Stamp } from "@/components/editorial";
+import { StoryMapSection } from "@/components/story/story-map-section";
 import type { StoryTree } from "@/lib/types";
 
 const coverPalettes: [string, string][] = [
@@ -107,6 +108,9 @@ export default async function StoryDetailPage({
               </div>
             ))}
           </div>
+
+          {/* Story Map (collapsed by default) */}
+          <StoryMapSection storyTree={tree} />
 
           {/* CTA */}
           <Link
