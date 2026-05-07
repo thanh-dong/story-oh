@@ -1,33 +1,57 @@
 import type { StoryTree } from "@/lib/types";
+import { estimateReadingMinutes } from "@/lib/tree-utils";
 
 export interface StoryStats {
-  nodeCount: number;
-  wordCount: number;
-  readingMinutes: number;
-  pathCount: number;
+  /** Number of story nodes — shown to users as "pages" (matches story-card.tsx). */
+  pageCount: number;
+  /** Total branching choices across the tree (sum of node.choices.length). */
+  optionCount: number;
+  /** Nodes with no choices — terminal outcomes. */
   endingCount: number;
+  /** Distinct root-to-ending walks. Cycle-safe with a safety cap. */
+  pathCount: number;
+  /** Longest depth from start. */
   maxDepth: number;
+  /** Word count across node text + choice labels (matches reading-time source). */
+  wordCount: number;
+  /** Estimated minutes — uses the project's kid-paced 130 wpm formula. */
+  readingMinutes: number;
 }
 
-const WORDS_PER_MINUTE = 180;
-const MAX_PATH_TRAVERSAL = 200; // safety cap for pathCount on dense trees
+const MAX_PATH_TRAVERSAL = 200; // safety cap for pathCount on dense/cyclic trees
 
 export function computeStoryStats(tree: StoryTree): StoryStats {
   const nodes = Object.entries(tree);
-  const nodeCount = nodes.length;
+  const pageCount = nodes.length;
 
   let wordCount = 0;
+  let optionCount = 0;
   let endingCount = 0;
   for (const [, node] of nodes) {
     wordCount += countWords(node.text);
-    if (!node.choices || node.choices.length === 0) endingCount++;
+    const choices = node.choices ?? [];
+    optionCount += choices.length;
+    if (choices.length === 0) {
+      endingCount++;
+    } else {
+      for (const choice of choices) {
+        wordCount += countWords(choice.label);
+      }
+    }
   }
 
-  const readingMinutes = Math.max(1, Math.round(wordCount / WORDS_PER_MINUTE));
-
   const { pathCount, maxDepth } = countPathsAndDepth(tree);
+  const readingMinutes = estimateReadingMinutes(tree);
 
-  return { nodeCount, wordCount, readingMinutes, pathCount, endingCount, maxDepth };
+  return {
+    pageCount,
+    optionCount,
+    endingCount,
+    pathCount,
+    maxDepth,
+    wordCount,
+    readingMinutes,
+  };
 }
 
 function countWords(text: string): number {

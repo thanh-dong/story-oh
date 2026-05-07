@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import Image from "next/image";
-import { BookOpen, Compass, Flag, Clock, GitBranch, RotateCcw, Type } from "lucide-react";
+import { BookOpen, Compass, Flag, Clock, GitBranch, RotateCcw } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -78,25 +78,24 @@ export function StoryPreviewDialog({
           {stats && (
             <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
               <span className="inline-flex items-center gap-1">
-                <Clock className="size-3.5" />
-                {stats.readingMinutes} min read
+                <Clock className="size-3.5" />~{stats.readingMinutes} min read
               </span>
               <span>·</span>
               <span>Age {variant.age_range}</span>
               <span>·</span>
               <span className="inline-flex items-center gap-1">
+                <BookOpen className="size-3.5" />
+                {stats.pageCount} {stats.pageCount === 1 ? "page" : "pages"}
+              </span>
+              <span>·</span>
+              <span className="inline-flex items-center gap-1">
                 <GitBranch className="size-3.5" />
-                {stats.pathCount} {stats.pathCount === 1 ? "path" : "paths"}
+                {stats.optionCount} {stats.optionCount === 1 ? "option" : "options"}
               </span>
               <span>·</span>
               <span className="inline-flex items-center gap-1">
                 <Flag className="size-3.5" />
                 {stats.endingCount} {stats.endingCount === 1 ? "ending" : "endings"}
-              </span>
-              <span>·</span>
-              <span className="inline-flex items-center gap-1">
-                <Type className="size-3.5" />
-                {stats.wordCount} words
               </span>
             </div>
           )}

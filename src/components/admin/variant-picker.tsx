@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { Check, Clock, Eye, Flag, GitBranch, Type } from "lucide-react";
+import { BookOpen, Check, Clock, Eye, Flag, GitBranch } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { GenerateStoryResponse } from "@/lib/types";
 import { computeStoryStats } from "@/lib/tree-stats";
@@ -114,20 +114,19 @@ export function VariantPicker({
 
                 <ul className="grid grid-cols-2 gap-x-2 gap-y-1.5 text-xs text-muted-foreground">
                   <li className="inline-flex items-center gap-1.5">
-                    <Clock className="size-3.5 shrink-0" />
-                    {stats.readingMinutes} min read
+                    <Clock className="size-3.5 shrink-0" />~{stats.readingMinutes} min read
+                  </li>
+                  <li className="inline-flex items-center gap-1.5">
+                    <BookOpen className="size-3.5 shrink-0" />
+                    {stats.pageCount} {stats.pageCount === 1 ? "page" : "pages"}
                   </li>
                   <li className="inline-flex items-center gap-1.5">
                     <GitBranch className="size-3.5 shrink-0" />
-                    {stats.pathCount} {stats.pathCount === 1 ? "path" : "paths"}
+                    {stats.optionCount} {stats.optionCount === 1 ? "option" : "options"}
                   </li>
                   <li className="inline-flex items-center gap-1.5">
                     <Flag className="size-3.5 shrink-0" />
                     {stats.endingCount} {stats.endingCount === 1 ? "ending" : "endings"}
-                  </li>
-                  <li className="inline-flex items-center gap-1.5">
-                    <Type className="size-3.5 shrink-0" />
-                    {stats.wordCount} words
                   </li>
                 </ul>
 
