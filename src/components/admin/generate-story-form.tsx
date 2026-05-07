@@ -21,6 +21,12 @@ interface GenerateStoryFormProps {
   credits?: number;
   generateEndpoint?: string;
   onCreditsUsed?: (charged: number, remaining: number) => void;
+  /** When set, the form sends `session_id` so the server treats this as a free regen. */
+  sessionId?: string | null;
+  /** Override the primary button label (e.g., "Regenerate (2 free left)"). */
+  submitLabel?: string;
+  /** Disable the submit button externally (e.g., out of free regens and not allowed to charge). */
+  disabled?: boolean;
 }
 
 export function GenerateStoryForm({
@@ -28,6 +34,9 @@ export function GenerateStoryForm({
   credits,
   generateEndpoint = "/api/admin/stories/generate",
   onCreditsUsed,
+  sessionId,
+  submitLabel,
+  disabled,
 }: GenerateStoryFormProps) {
   const [keyword, setKeyword] = useState("");
   const [description, setDescription] = useState("");
@@ -67,6 +76,7 @@ export function GenerateStoryForm({
           difficulty,
           minBranches,
           maxBranches,
+          ...(sessionId ? { session_id: sessionId } : {}),
         }),
         signal: AbortSignal.timeout(90000),
       });
@@ -90,6 +100,8 @@ export function GenerateStoryForm({
         age_range: data.age_range,
         story_tree: data.story_tree,
         cover_image: data.cover_image ?? null,
+        session_id: data.session_id,
+        free_regens_remaining: data.free_regens_remaining,
       });
     } catch (err) {
       const message = err instanceof Error
@@ -238,8 +250,8 @@ export function GenerateStoryForm({
         </div>
       </div>
 
-      {/* Credit info */}
-      {hasCredits && (
+      {/* Credit info — hidden during free-regen mode */}
+      {hasCredits && !sessionId && (
         <div className="rounded-xl bg-parchment p-4 space-y-1">
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">Estimated cost</span>
@@ -282,9 +294,15 @@ export function GenerateStoryForm({
 
       <Button
         onClick={handleGenerate}
-        disabled={loading || !keyword.trim() || insufficientCredits}
+        disabled={loading || !keyword.trim() || disabled || (!sessionId && insufficientCredits)}
       >
-        {loading ? "Generating your story..." : hasCredits ? `Generate (~${estimated} credits)` : "Generate Story"}
+        {loading
+          ? "Generating your story..."
+          : submitLabel
+            ? submitLabel
+            : hasCredits
+              ? `Generate (~${estimated} credits)`
+              : "Generate Story"}
       </Button>
     </div>
   );

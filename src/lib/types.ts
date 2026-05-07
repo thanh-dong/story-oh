@@ -57,6 +57,8 @@ export interface GenerateStoryResponse {
   age_range: string;
   story_tree: StoryTree;
   cover_image?: string | null;
+  session_id?: string;
+  free_regens_remaining?: number;
 }
 
 export interface Child {

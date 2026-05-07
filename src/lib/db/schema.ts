@@ -250,3 +250,23 @@ export const vocabularyProgress = pgTable(
     index("vocab_progress_child_plan_idx").on(table.childId, table.planId),
   ]
 );
+
+// ─── Generation Sessions ───
+// Tracks free regeneration credits granted after a paid story generation.
+// Each row gives the user up to 2 free regens within expires_at.
+
+export const generationSessions = pgTable(
+  "generation_sessions",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    user_id: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    free_regens_remaining: integer("free_regens_remaining").notNull().default(2),
+    expires_at: timestamp("expires_at", { withTimezone: true, mode: "string" }).notNull(),
+    created_at: timestamp("created_at", { withTimezone: true, mode: "string" })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [index("generation_sessions_user_id_idx").on(table.user_id)]
+);
