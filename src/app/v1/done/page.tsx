@@ -38,8 +38,8 @@ export default async function DonePage({
           </h1>
 
           <p className="text-[17px] leading-relaxed text-muted-foreground">
-            We&rsquo;ve sent a verification email — check your inbox to confirm
-            your address. Your story is saved and waiting for you.
+            You&rsquo;re signed in and your story is saved. Read it now, or
+            head to the dashboard to make more.
           </p>
 
           <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">

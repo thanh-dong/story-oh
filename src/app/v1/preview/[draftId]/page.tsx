@@ -100,7 +100,7 @@ export default async function PreviewPage({
             draftId={draftId}
             story={draft.story_json}
             storyTitle={draft.story_json.title}
-            defaultChildName={
+            childName={
               (draft.config_json as { mainCharacterName?: string })?.mainCharacterName
             }
           />

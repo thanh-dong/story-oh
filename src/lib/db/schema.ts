@@ -309,7 +309,9 @@ export const guestStoryDrafts = pgTable(
     config_json: jsonb("config_json").$type<GuestDraftConfig>().notNull(),
     story_json: jsonb("story_json").$type<GenerateStoryResponse>(),
     status: text("status").notNull().default("generating"),
-    claimed_user_id: text("claimed_user_id").references(() => user.id),
+    claimed_user_id: text("claimed_user_id").references(() => user.id, {
+      onDelete: "set null",
+    }),
     magic_count: integer("magic_count").notNull().default(0),
     created_at: timestamp("created_at", { withTimezone: true, mode: "string" })
       .notNull()

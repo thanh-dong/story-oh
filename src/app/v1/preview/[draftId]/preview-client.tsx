@@ -35,14 +35,14 @@ interface PreviewClientProps {
   draftId: string;
   story: GenerateStoryResponse;
   storyTitle: string;
-  defaultChildName?: string;
+  childName?: string;
 }
 
 export function PreviewClient({
   draftId,
   story,
   storyTitle,
-  defaultChildName,
+  childName,
 }: PreviewClientProps) {
   const router = useRouter();
   const [saveOpen, setSaveOpen] = useState(false);
@@ -186,8 +186,8 @@ export function PreviewClient({
         open={saveOpen}
         onOpenChange={setSaveOpen}
         draftId={draftId}
-        defaultStoryName={storyTitle}
-        defaultChildName={defaultChildName}
+        storyTitle={storyTitle}
+        childName={childName}
       />
     </>
   );
