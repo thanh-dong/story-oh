@@ -12,7 +12,7 @@ export default async function Home() {
   } catch {
     isAuthenticated = false;
   }
-  const ctaHref = isAuthenticated ? "/dashboard" : "/signup";
+  const ctaHref = isAuthenticated ? "/dashboard" : "/v1";
   const ctaLabel = isAuthenticated ? "Open dashboard" : "Get started — free";
   const ctaSubLabel = isAuthenticated ? "Continue your journey" : "No credit card required";
   return (

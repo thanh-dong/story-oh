@@ -12,7 +12,16 @@ import {
   index,
 } from "drizzle-orm/pg-core";
 import type { StoryTree } from "@/lib/types";
+import type { GenerateStoryResponse } from "@/lib/types";
 import type { VocabularyPlan } from "@/lib/vocabulary-types";
+
+export interface GuestDraftConfig {
+  ageBand: "4-6" | "6-8" | "8-12";
+  length: "quick" | "standard" | "longer";
+  interests: string[];
+  idea: string;
+  lesson: string;
+}
 
 // ─── Better-Auth Tables ───
 
@@ -269,4 +278,30 @@ export const generationSessions = pgTable(
       .defaultNow(),
   },
   (table) => [index("generation_sessions_user_id_idx").on(table.user_id)]
+);
+
+// ─── Guest Story Drafts (v1 anonymous onboarding) ───
+// Anonymous warm-lead funnel under /v1/. One draft per guest cookie + IP per 24h.
+// Survives until expires_at (7d). Claimed → linked to user.id on signup.
+
+export const guestStoryDrafts = pgTable(
+  "guest_story_drafts",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    guest_id: text("guest_id").notNull(),
+    ip_hash: text("ip_hash").notNull(),
+    config_json: jsonb("config_json").$type<GuestDraftConfig>().notNull(),
+    story_json: jsonb("story_json").$type<GenerateStoryResponse>(),
+    status: text("status").notNull().default("generating"),
+    claimed_user_id: text("claimed_user_id").references(() => user.id),
+    magic_count: integer("magic_count").notNull().default(0),
+    created_at: timestamp("created_at", { withTimezone: true, mode: "string" })
+      .notNull()
+      .defaultNow(),
+    expires_at: timestamp("expires_at", { withTimezone: true, mode: "string" }).notNull(),
+  },
+  (table) => [
+    index("guest_story_drafts_guest_created_idx").on(table.guest_id, table.created_at),
+    index("guest_story_drafts_ip_created_idx").on(table.ip_hash, table.created_at),
+  ]
 );
