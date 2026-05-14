@@ -31,15 +31,26 @@ function validateConfig(body: unknown): { valid: true; data: GuestDraftConfig } 
   if (typeof b.lesson !== "string") {
     return { valid: false, error: "lesson must be a string" };
   }
+  // Language is optional; default to "en" for back-compat with old clients.
+  const language: GuestDraftConfig["language"] =
+    b.language === "vi" || b.language === "de" ? b.language : "en";
+
+  // Main character name is optional. Trim and cap length to avoid prompt abuse.
+  const mainCharacterName =
+    typeof b.mainCharacterName === "string" && b.mainCharacterName.trim()
+      ? b.mainCharacterName.trim().slice(0, 60)
+      : undefined;
 
   return {
     valid: true,
     data: {
       ageBand: b.ageBand,
       length: b.length,
+      language,
       interests: b.interests as string[],
       idea: b.idea,
       lesson: b.lesson,
+      ...(mainCharacterName ? { mainCharacterName } : {}),
     },
   };
 }

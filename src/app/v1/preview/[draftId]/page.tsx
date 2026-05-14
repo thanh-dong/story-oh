@@ -100,6 +100,9 @@ export default async function PreviewPage({
             draftId={draftId}
             story={draft.story_json}
             storyTitle={draft.story_json.title}
+            defaultChildName={
+              (draft.config_json as { mainCharacterName?: string })?.mainCharacterName
+            }
           />
 
           <div className="flex items-center justify-center gap-3 pt-4">

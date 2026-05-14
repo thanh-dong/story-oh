@@ -7,17 +7,33 @@ import { InterestsStep } from "@/components/v1/interests-step";
 import { IdeaStep } from "@/components/v1/idea-step";
 import { Ornament } from "@/components/editorial";
 import { cn } from "@/lib/utils";
-import type { GuestDraftConfig } from "@/lib/db/schema";
+import type { GuestDraftConfig, V1Language } from "@/lib/db/schema";
 import { emitV1 } from "@/lib/v1-telemetry";
+import { useSession } from "@/lib/auth-client";
+import { dobToAgeBand } from "@/lib/v1-age-band";
 
 type Step = 0 | 1 | 2;
 
 interface WizardState {
   ageBand: GuestDraftConfig["ageBand"] | null;
   length: GuestDraftConfig["length"] | null;
+  language: GuestDraftConfig["language"];
   interests: string[];
   idea: string;
   lesson: string;
+  mainCharacterName: string;
+}
+
+interface ChildProfile {
+  id: string;
+  name: string;
+  dateOfBirth: string;
+  interests?: string[];
+  nativeLanguage?: string;
+}
+
+function isV1Language(s: unknown): s is V1Language {
+  return s === "en" || s === "vi" || s === "de";
 }
 
 const STEP_LABELS = ["Personalize", "Interests", "Idea"];
@@ -30,14 +46,53 @@ export default function V1WizardPage() {
   const [config, setConfig] = useState<WizardState>({
     ageBand: null,
     length: null,
+    language: "en",
     interests: [],
     idea: "",
     lesson: "",
+    mainCharacterName: "",
   });
+  const [prefilledFromChild, setPrefilledFromChild] = useState<string | null>(null);
+
+  const { data: session } = useSession();
 
   useEffect(() => {
     emitV1("v1.start");
   }, []);
+
+  // Pre-fill from the user's first child profile when logged in. Best-effort:
+  // network errors / no children → silently skip.
+  useEffect(() => {
+    if (!session?.user) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/children");
+        if (!res.ok) return;
+        const list = (await res.json()) as ChildProfile[];
+        if (cancelled || !Array.isArray(list) || list.length === 0) return;
+        const child = list[0];
+        const lang = isV1Language(child.nativeLanguage) ? child.nativeLanguage : "en";
+        setConfig((prev) => ({
+          ageBand: prev.ageBand ?? dobToAgeBand(child.dateOfBirth),
+          length: prev.length ?? "standard",
+          language: prev.language === "en" ? lang : prev.language,
+          interests:
+            prev.interests.length > 0 ? prev.interests : (child.interests ?? []),
+          idea: prev.idea,
+          lesson: prev.lesson,
+          mainCharacterName:
+            prev.mainCharacterName.trim().length > 0 ? prev.mainCharacterName : child.name,
+        }));
+        setPrefilledFromChild(child.name);
+      } catch {
+        // ignore — anonymous flow still works
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [session?.user]);
 
   function update<K extends keyof WizardState>(key: K, value: WizardState[K]) {
     setConfig((prev) => ({ ...prev, [key]: value }));
@@ -54,9 +109,13 @@ export default function V1WizardPage() {
         body: JSON.stringify({
           ageBand: config.ageBand,
           length: config.length,
+          language: config.language,
           interests: config.interests,
           idea: config.idea,
           lesson: config.lesson,
+          ...(config.mainCharacterName.trim()
+            ? { mainCharacterName: config.mainCharacterName.trim() }
+            : {}),
         } satisfies GuestDraftConfig),
       });
       if (res.status === 429) {
@@ -104,6 +163,23 @@ export default function V1WizardPage() {
             </p>
           </div>
 
+          {prefilledFromChild && (
+            <div
+              className="flex items-center gap-2.5 rounded-xl border-2 px-3.5 py-2.5 text-sm animate-in fade-in slide-in-from-top-2"
+              style={{
+                borderColor: "color-mix(in oklab, var(--kid-green) 40%, transparent)",
+                background: "color-mix(in oklab, var(--kid-green) 10%, transparent)",
+              }}
+            >
+              <Ornament kind="leaf" size={14} color="var(--kid-green)" />
+              <span className="flex-1 text-foreground">
+                Pre-filled from{" "}
+                <span className="font-semibold">{prefilledFromChild}</span>
+                &rsquo;s profile — feel free to tweak.
+              </span>
+            </div>
+          )}
+
           {/* Progress indicator */}
           <ol className="flex items-center gap-1.5 sm:gap-2" aria-label="Wizard progress">
             {STEP_LABELS.map((label, i) => {
@@ -149,15 +225,19 @@ export default function V1WizardPage() {
                 <PersonalizeStep
                   ageBand={config.ageBand}
                   length={config.length}
+                  language={config.language}
                   onAgeBandChange={(v) => update("ageBand", v)}
                   onLengthChange={(v) => update("length", v)}
+                  onLanguageChange={(v) => update("language", v)}
                   onNext={() => setStep(1)}
                 />
               )}
               {step === 1 && (
                 <InterestsStep
                   interests={config.interests}
+                  mainCharacterName={config.mainCharacterName}
                   onInterestsChange={(v) => update("interests", v)}
+                  onMainCharacterNameChange={(v) => update("mainCharacterName", v)}
                   onBack={() => setStep(0)}
                   onNext={() => setStep(2)}
                 />

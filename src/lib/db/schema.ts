@@ -15,12 +15,16 @@ import type { StoryTree } from "@/lib/types";
 import type { GenerateStoryResponse } from "@/lib/types";
 import type { VocabularyPlan } from "@/lib/vocabulary-types";
 
+export type V1Language = "en" | "vi" | "de";
+
 export interface GuestDraftConfig {
   ageBand: "4-6" | "6-8" | "8-12";
   length: "quick" | "standard" | "longer";
+  language: V1Language;
   interests: string[];
   idea: string;
   lesson: string;
+  mainCharacterName?: string;
 }
 
 // ─── Better-Auth Tables ───
@@ -279,6 +283,18 @@ export const generationSessions = pgTable(
   },
   (table) => [index("generation_sessions_user_id_idx").on(table.user_id)]
 );
+
+// ─── App Config (admin-tunable settings) ───
+// Generic key/value store. `value` is jsonb so a value can be a number,
+// string, boolean, or object — read at use-site with a runtime check.
+
+export const appConfig = pgTable("app_config", {
+  key: text("key").primaryKey(),
+  value: jsonb("value").notNull(),
+  updated_at: timestamp("updated_at", { withTimezone: true, mode: "string" })
+    .notNull()
+    .defaultNow(),
+});
 
 // ─── Guest Story Drafts (v1 anonymous onboarding) ───
 // Anonymous warm-lead funnel under /v1/. One draft per guest cookie + IP per 24h.

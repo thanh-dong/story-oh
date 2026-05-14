@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Ornament } from "@/components/editorial";
 import { cn } from "@/lib/utils";
 
@@ -35,7 +36,9 @@ const PRESET_INTERESTS: PresetInterest[] = [
 
 interface InterestsStepProps {
   interests: string[];
+  mainCharacterName: string;
   onInterestsChange: (v: string[]) => void;
+  onMainCharacterNameChange: (v: string) => void;
   onBack: () => void;
   onNext: () => void;
 }
@@ -98,7 +101,9 @@ function InterestCard({
 
 export function InterestsStep({
   interests,
+  mainCharacterName,
   onInterestsChange,
+  onMainCharacterNameChange,
   onBack,
   onNext,
 }: InterestsStepProps) {
@@ -222,6 +227,31 @@ export function InterestsStep({
             ))}
           </div>
         )}
+      </section>
+
+      <section className="space-y-2">
+        <div className="flex items-baseline justify-between gap-2">
+          <Label
+            htmlFor="main-character-name"
+            className="mono text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground sm:text-[11px]"
+          >
+            Main character&rsquo;s name
+          </Label>
+          <span className="mono text-[9px] uppercase tracking-[0.14em] text-muted-foreground">
+            Optional
+          </span>
+        </div>
+        <Input
+          id="main-character-name"
+          value={mainCharacterName}
+          onChange={(e) => onMainCharacterNameChange(e.target.value.slice(0, 60))}
+          placeholder="e.g. your child&rsquo;s name"
+          className="rounded-xl border-2 text-sm transition-colors focus-visible:border-kid-orange focus-visible:ring-0"
+          maxLength={60}
+        />
+        <p className="text-xs text-muted-foreground">
+          Use your child&rsquo;s name so the story feels personal — the hero will share their name.
+        </p>
       </section>
 
       <p className="rounded-xl bg-muted/40 px-3.5 py-2.5 text-sm text-muted-foreground">

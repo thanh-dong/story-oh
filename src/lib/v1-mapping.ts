@@ -49,7 +49,11 @@ export function mapV1ConfigToGenerateRequest(
   config: GuestDraftConfig,
 ): GenerateStoryRequest {
   const { min, max } = LENGTH_TO_BRANCHES[config.length];
+  const characterLine = config.mainCharacterName?.trim()
+    ? `Main character: ${config.mainCharacterName.trim()}. Use this name throughout the story.`
+    : "";
   const description = [
+    characterLine,
     config.idea.trim(),
     config.lesson.trim() ? `Lesson: ${config.lesson.trim()}` : "",
   ]
@@ -59,7 +63,7 @@ export function mapV1ConfigToGenerateRequest(
   return {
     keyword: config.interests.join(", "),
     description,
-    language: "en", // TODO(user): wire to user's preferred language
+    language: config.language ?? "en",
     audienceAge: mapAge(config.ageBand),
     isForChildren: true,
     expectedReadingTime: LENGTH_TO_MINUTES[config.length],

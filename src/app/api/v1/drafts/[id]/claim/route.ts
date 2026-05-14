@@ -5,6 +5,8 @@ import { and, eq, isNull } from "drizzle-orm";
 import { getSession } from "@/lib/auth";
 import { readGuestId } from "@/lib/guest-id";
 import type { GenerateStoryResponse } from "@/lib/types";
+import type { GuestDraftConfig } from "@/lib/db/schema";
+import { ageBandToDateOfBirth } from "@/lib/v1-age-band";
 
 export async function POST(
   request: Request,
@@ -67,6 +69,21 @@ export async function POST(
   }
 
   const storyData = draft.story_json as GenerateStoryResponse;
+  const config = draft.config_json as GuestDraftConfig;
+
+  // If the parent ticked "Create child profile", populate the child row from
+  // the v1 config (interests, language, age band) — much richer than the
+  // previous hardcoded default. The parent can edit later in the dashboard.
+  const childToCreate = childName
+    ? {
+        name: childName,
+        dateOfBirth: ageBandToDateOfBirth(config.ageBand),
+        avatar: "default",
+        nativeLanguage: config.language ?? "en",
+        learningLanguages: [config.language ?? "en"],
+        interests: config.interests ?? [],
+      }
+    : null;
 
   let storyId: string;
   try {
@@ -88,15 +105,12 @@ export async function POST(
         story_id: newStory.id,
       });
 
-      if (childName) {
+      if (childToCreate) {
         const [newChild] = await tx
           .insert(children)
           .values({
             parentId: session.user.id,
-            name: childName,
-            dateOfBirth: "2020-01-01",
-            avatar: "default",
-            nativeLanguage: "en",
+            ...childToCreate,
           })
           .returning({ id: children.id });
 

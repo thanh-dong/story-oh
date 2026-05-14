@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Pencil, Plus, Trash2, Users } from "lucide-react";
+import { Pencil, Plus, Settings, Trash2, Users } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -89,6 +89,12 @@ export default function AdminPage() {
             </p>
           </div>
           <div className="flex items-center gap-2">
+            <Link href="/admin/settings">
+              <Button variant="outline" className="rounded-full font-bold">
+                <Settings className="size-4" data-icon="inline-start" />
+                Settings
+              </Button>
+            </Link>
             <Link href="/admin/users">
               <Button variant="outline" className="rounded-full font-bold">
                 <Users className="size-4" data-icon="inline-start" />
