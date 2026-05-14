@@ -14,6 +14,7 @@ import {
 } from "./db/schema";
 import { readGuestId } from "./guest-id";
 import { ageBandToDateOfBirth } from "./v1-age-band";
+import { defaultV1Avatar } from "./v1-avatar";
 import type { GenerateStoryResponse } from "./types";
 
 // Runs after better-auth has committed a new user. If the new user just came
@@ -78,7 +79,7 @@ async function claimGuestDraftForUser(userId: string): Promise<void> {
           parentId: userId,
           name: childName,
           dateOfBirth: ageBandToDateOfBirth(config.ageBand),
-          avatar: "default",
+          avatar: defaultV1Avatar(childName),
           nativeLanguage: config.language ?? "en",
           learningLanguages: [config.language ?? "en"],
           interests: config.interests ?? [],

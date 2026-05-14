@@ -7,6 +7,7 @@ import { readGuestId } from "@/lib/guest-id";
 import type { GenerateStoryResponse } from "@/lib/types";
 import type { GuestDraftConfig } from "@/lib/db/schema";
 import { ageBandToDateOfBirth } from "@/lib/v1-age-band";
+import { defaultV1Avatar } from "@/lib/v1-avatar";
 
 export async function POST(
   request: Request,
@@ -78,7 +79,7 @@ export async function POST(
     ? {
         name: childName,
         dateOfBirth: ageBandToDateOfBirth(config.ageBand),
-        avatar: "default",
+        avatar: defaultV1Avatar(childName),
         nativeLanguage: config.language ?? "en",
         learningLanguages: [config.language ?? "en"],
         interests: config.interests ?? [],
